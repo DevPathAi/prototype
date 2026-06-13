@@ -15,7 +15,7 @@
 | 영역 | 기술 |
 |------|------|
 | Backend | Spring Boot 4 (폴백 3.4.x), Java 21, Spring Security 7 (OAuth2) |
-| Data | MySQL 8.x, Redis 7.x, pgvector, Elasticsearch |
+| Data | PostgreSQL 17, Redis 7.x, pgvector, Elasticsearch |
 | AI | Claude API (Sonnet 4.6 / Haiku 4.5), text-embedding-3-small |
 | Sandbox | Docker + gVisor (runsc) |
 | Web | React 18 + TypeScript, Zustand, TanStack Query, Monaco Editor |
