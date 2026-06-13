@@ -29,11 +29,21 @@
 
 ## 📂 구조
 
-> 프로토타입 구현 시작 시 업데이트 예정입니다.
+웹 프로토타입(Vite + React + TypeScript)이 레포 루트에 위치합니다.
 
 ```
 prototype/
-├── backend/    # Spring Boot 코어 (예정)
-├── web/        # React 웹 클라이언트 (예정)
-└── sandbox/    # Sandbox Runner (예정)
+├── src/            # React 소스 (화면 플로우 프로토타입)
+├── public/         # 정적 리소스
+├── index.html      # 엔트리
+├── vite.config.ts
+└── backend/        # Spring Boot 코어 검증용 (필요 시 추가 예정)
+```
+
+## 🚀 실행
+
+```bash
+npm install
+npm run dev      # 개발 서버 (http://localhost:5173)
+npm run build    # 프로덕션 빌드 검증
 ```
