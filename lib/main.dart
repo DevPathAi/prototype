@@ -343,7 +343,7 @@ class _DemoSectionState extends State<DemoSection> {
                 title: 'AI 검색 페이지',
                 subtitle: '키워드 검색과 pgvector 유사도 후보를 섞어 추천 품질 변화를 비교합니다.',
                 icon: Icons.travel_explore_outlined,
-                status: _includeVector ? 'Hybrid 검색' : 'Keyword 검색',
+                  status: _includeVector ? 'Hybrid 모드' : 'Keyword 모드',
                 child: _AiSearchSimulator(
                   query: _searchQuery,
                   includeVector: _includeVector,
@@ -779,10 +779,17 @@ class _ServiceDemoPage extends StatelessWidget {
                   ),
                   child: Icon(icon, color: Colors.white),
                 );
-                final statusChip = Chip(
-                  label: Text(status),
-                  side: const BorderSide(color: Color(0xFF1F6F68)),
-                  backgroundColor: Colors.white,
+                final statusChip = Semantics(
+                  container: true,
+                  liveRegion: true,
+                  label: '현재 상태: $status',
+                  child: ExcludeSemantics(
+                    child: Chip(
+                      label: Text('상태 · $status'),
+                      side: BorderSide.none,
+                      backgroundColor: const Color(0xFFD4E7E2),
+                    ),
+                  ),
                 );
                 final titleText = Text(
                   title,
