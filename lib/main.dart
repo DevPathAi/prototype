@@ -224,6 +224,13 @@ class DemoSection extends StatefulWidget {
 
 class _DemoSectionState extends State<DemoSection> {
   DemoProfile _selected = demoProfiles.first;
+  String _goal = '백엔드 취업';
+  double _weeklyHours = 8;
+  final Set<String> _weakAreas = {'Spring MVC', '테스트'};
+  String _codeScenario = 'null 응답';
+  String _searchQuery = '트랜잭션';
+  bool _includeVector = true;
+  bool _reviewRequested = false;
 
   @override
   Widget build(BuildContext context) {
@@ -232,27 +239,61 @@ class _DemoSectionState extends State<DemoSection> {
       children: [
         const _SectionHeader(
           eyebrow: '데모',
-          title: '진단 선택만으로 학습경로와 코드리뷰 미리보기가 바뀝니다',
-          body: '실제 백엔드 API 연동 전, 사용자에게 보일 핵심 경험을 정적 데이터와 로컬 상태로 검증합니다.',
+          title: '서비스 핵심 기능을 직접 조작하는 인터랙티브 시뮬레이터',
+          body:
+              '실제 백엔드 API 연동 전, 진단부터 경로 생성, 샌드박스 리뷰, AI 검색까지 사용자가 직접 값을 바꾸며 결과 변화를 확인합니다.',
         ),
         const SizedBox(height: 18),
-        _ResponsiveGrid(
-          minItemWidth: 260,
-          children: [
-            for (final profile in demoProfiles)
-              _SelectableDemoCard(
-                profile: profile,
-                selected: profile == _selected,
-                onTap: () => setState(() => _selected = profile),
-              ),
-          ],
+        _DemoSimulatorFrame(
+          title: '1. 진단 시뮬레이터',
+          icon: Icons.fact_check_outlined,
+          child: _DiagnosisSimulator(
+            selected: _selected,
+            onProfileChanged: (profile) => setState(() {
+              _selected = profile;
+              _reviewRequested = false;
+            }),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _DemoSimulatorFrame(
+          title: '2. 학습경로 생성 시뮬레이터',
+          icon: Icons.route_outlined,
+          child: _PathGeneratorSimulator(
+            profile: _selected,
+            goal: _goal,
+            weeklyHours: _weeklyHours,
+            weakAreas: _weakAreas,
+            onGoalChanged: (goal) => setState(() => _goal = goal),
+            onHoursChanged: (hours) => setState(() => _weeklyHours = hours),
+            onAreaToggled: (area) => setState(() {
+              if (_weakAreas.contains(area)) {
+                _weakAreas.remove(area);
+              } else {
+                _weakAreas.add(area);
+              }
+            }),
+          ),
         ),
         const SizedBox(height: 24),
         _ResponsiveGrid(
           minItemWidth: 360,
           children: [
-            _LearningPathPreview(profile: _selected),
-            _CodeReviewPreview(profile: _selected),
+            _SandboxReviewSimulator(
+              scenario: _codeScenario,
+              reviewRequested: _reviewRequested,
+              onScenarioChanged: (scenario) => setState(() {
+                _codeScenario = scenario;
+                _reviewRequested = false;
+              }),
+              onReviewRequested: () => setState(() => _reviewRequested = true),
+            ),
+            _AiSearchSimulator(
+              query: _searchQuery,
+              includeVector: _includeVector,
+              onQueryChanged: (query) => setState(() => _searchQuery = query),
+              onVectorChanged: (value) => setState(() => _includeVector = value),
+            ),
           ],
         ),
       ],
@@ -270,30 +311,46 @@ class ArchitectureSection extends StatelessWidget {
       children: [
         const _SectionHeader(
           eyebrow: '아키텍처',
-          title: '독립 배포 서비스와 중앙 스키마를 결합한 현실적인 MSA',
+          title: '클라이언트, 게이트웨이, 도메인 서비스, AI/데이터 계층을 분리한 MSA',
           body:
-              '서비스는 도메인별로 나누되, 1인 개발 속도를 위해 PostgreSQL/Flyway 스키마는 shared에서 중앙 관리합니다.',
+              'DevPath AI는 사용자 경험은 Flutter로 빠르게 통합하고, 서버는 gateway/platform/learning/ai/sandbox/community로 책임을 나눕니다. 데이터 계약은 PostgreSQL/Flyway와 API DTO로 고정하고, AI 호출은 ai-svc가 단일 관문으로 흡수합니다.',
         ),
         const SizedBox(height: 20),
         const _ArchitectureMap(),
         const SizedBox(height: 24),
+        const _ArchitectureFlow(),
+        const SizedBox(height: 24),
+        const _ServiceResponsibilityGrid(),
+        const SizedBox(height: 24),
         _ResponsiveGrid(
           minItemWidth: 300,
           children: const [
-            _InfoCard(
-              icon: Icons.login_outlined,
-              title: '게이트웨이 + 플랫폼',
-              body: 'OAuth, JWT, 사용자 프로필, 온보딩 상태 전이를 담당합니다.',
+            _ArchitectureContract(
+              title: 'API 계약',
+              icon: Icons.http_outlined,
+              lines: [
+                'bare path API: /ai/embed, /ai/path/generate',
+                'Gateway가 인증/라우팅을 담당하고 서비스는 도메인 계약에 집중',
+                'DTO와 오류 응답은 테스트에서 고정',
+              ],
             ),
-            _InfoCard(
-              icon: Icons.school_outlined,
-              title: '학습 서비스',
-              body: '진단, 학습경로, 콘텐츠 매칭, 진행 상태를 소유합니다.',
+            _ArchitectureContract(
+              title: '데이터 경계',
+              icon: Icons.table_chart_outlined,
+              lines: [
+                'shared가 Flyway 스키마와 공통 Docker 구성을 관리',
+                '각 서비스는 자기 도메인 테이블만 읽고 씀',
+                'pgvector는 콘텐츠 추천 후보 검색에 사용',
+              ],
             ),
-            _InfoCard(
-              icon: Icons.smart_toy_outlined,
-              title: 'AI 서비스',
-              body: 'Ollama/LLM 호출을 한 곳으로 모아 생성과 임베딩 계약을 안정화합니다.',
+            _ArchitectureContract(
+              title: '운영/배포',
+              icon: Icons.cloud_sync_outlined,
+              lines: [
+                'GitHub Actions가 서비스별 build/test를 수행',
+                'GitOps는 환경별 manifest와 secret 경계를 분리',
+                '프로토타입은 GitHub Pages에 정적 배포',
+              ],
             ),
           ],
         ),
@@ -312,8 +369,9 @@ class TechnologySection extends StatelessWidget {
       children: [
         const _SectionHeader(
           eyebrow: '기술 스택',
-          title: '기술 선택 이유와 DevPath에서의 사용 방법',
-          body: '각 기술은 데모를 위한 장식이 아니라 학습경로 생성, 실습, 리뷰, 배포 흐름에 직접 연결됩니다.',
+          title: '제품 기능, 개발 속도, 운영 안정성을 기준으로 고른 기술 조합',
+          body:
+              '각 기술은 화면 장식이 아니라 진단 저장, 경로 생성, 샌드박스 실행, AI 리뷰, 검색 추천, 배포 자동화에 직접 연결됩니다. 아래 카드에는 기술 종류, 채택 이유, 핵심 개념, DevPath에서의 사용 방식, 운영 포인트를 함께 정리했습니다.',
         ),
         const SizedBox(height: 18),
         _ResponsiveGrid(
@@ -513,6 +571,475 @@ class _MetricTile extends StatelessWidget {
   }
 }
 
+class _DemoSimulatorFrame extends StatelessWidget {
+  const _DemoSimulatorFrame({required this.title, required this.icon, required this.child});
+
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD9DED8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: const Color(0xFF1F6F68)),
+              const SizedBox(width: 10),
+              Expanded(child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+class _DiagnosisSimulator extends StatelessWidget {
+  const _DiagnosisSimulator({required this.selected, required this.onProfileChanged});
+
+  final DemoProfile selected;
+  final ValueChanged<DemoProfile> onProfileChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ResponsiveGrid(
+      minItemWidth: 300,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('학습자 페르소나를 선택하면 역량 점수와 추천 흐름이 즉시 바뀝니다.',
+                style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+            const SizedBox(height: 14),
+            for (final profile in demoProfiles)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: _SelectableDemoCard(
+                  profile: profile,
+                  selected: profile == selected,
+                  onTap: () => onProfileChanged(profile),
+                ),
+              ),
+          ],
+        ),
+        _SkillRadar(profile: selected),
+        _DiagnosisResult(profile: selected),
+      ],
+    );
+  }
+}
+
+class _SkillRadar extends StatelessWidget {
+  const _SkillRadar({required this.profile});
+
+  final DemoProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      title: '진단 점수',
+      icon: Icons.analytics_outlined,
+      child: Column(
+        children: [
+          for (final skill in profile.skills)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: Text(skill.$1, style: const TextStyle(fontWeight: FontWeight.w800))),
+                      Text('${(skill.$2 * 100).round()}점'),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  LinearProgressIndicator(
+                    value: skill.$2,
+                    minHeight: 9,
+                    borderRadius: BorderRadius.circular(8),
+                    color: skill.$2 >= 0.7
+                        ? const Color(0xFF1F6F68)
+                        : skill.$2 >= 0.45
+                            ? const Color(0xFFB7791F)
+                            : const Color(0xFF9D3A3A),
+                    backgroundColor: const Color(0xFFE8EEE8),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DiagnosisResult extends StatelessWidget {
+  const _DiagnosisResult({required this.profile});
+
+  final DemoProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      title: '자동 판정',
+      icon: Icons.psychology_alt_outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _ResultLine(label: '권장 트랙', value: profile.track),
+          _ResultLine(label: '우선 보강', value: profile.priority),
+          _ResultLine(label: 'Aha 포인트', value: profile.aha),
+          const SizedBox(height: 12),
+          Text(profile.summary, style: const TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+        ],
+      ),
+    );
+  }
+}
+
+class _PathGeneratorSimulator extends StatelessWidget {
+  const _PathGeneratorSimulator({
+    required this.profile,
+    required this.goal,
+    required this.weeklyHours,
+    required this.weakAreas,
+    required this.onGoalChanged,
+    required this.onHoursChanged,
+    required this.onAreaToggled,
+  });
+
+  final DemoProfile profile;
+  final String goal;
+  final double weeklyHours;
+  final Set<String> weakAreas;
+  final ValueChanged<String> onGoalChanged;
+  final ValueChanged<double> onHoursChanged;
+  final ValueChanged<String> onAreaToggled;
+
+  @override
+  Widget build(BuildContext context) {
+    final totalWeeks = weeklyHours >= 10 ? 8 : weeklyHours >= 6 ? 10 : 12;
+    final intensity = weeklyHours >= 10 ? '집중형' : weeklyHours >= 6 ? '균형형' : '완주형';
+    return _ResponsiveGrid(
+      minItemWidth: 340,
+      children: [
+        _Panel(
+          title: '입력값',
+          icon: Icons.tune_outlined,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('목표 트랙', style: TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final item in const ['백엔드 취업', '실무 전환', 'AI 검색 고도화'])
+                    ChoiceChip(
+                      label: Text(item),
+                      selected: goal == item,
+                      onSelected: (_) => onGoalChanged(item),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text('주간 학습 시간: ${weeklyHours.round()}시간', style: const TextStyle(fontWeight: FontWeight.w800)),
+              Slider(value: weeklyHours, min: 3, max: 14, divisions: 11, onChanged: onHoursChanged),
+              const SizedBox(height: 10),
+              const Text('집중 보강 영역', style: TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final area in const ['Spring MVC', 'JPA', '테스트', 'Kafka', 'pgvector'])
+                    FilterChip(
+                      label: Text(area),
+                      selected: weakAreas.contains(area),
+                      onSelected: (_) => onAreaToggled(area),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        _Panel(
+          title: '생성 결과',
+          icon: Icons.map_outlined,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ResultLine(label: '경로 타입', value: '$goal · $intensity · $totalWeeks주'),
+              _ResultLine(label: '학습자 기준', value: '${profile.name} · ${profile.level}'),
+              _ResultLine(label: '핵심 보강', value: weakAreas.isEmpty ? profile.priority : weakAreas.join(', ')),
+              const SizedBox(height: 12),
+              for (final week in _generatedWeeks(profile, goal, totalWeeks, weakAreas))
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _PathStep(week: week.$1, title: week.$2, body: week.$3),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _SandboxReviewSimulator extends StatelessWidget {
+  const _SandboxReviewSimulator({
+    required this.scenario,
+    required this.reviewRequested,
+    required this.onScenarioChanged,
+    required this.onReviewRequested,
+  });
+
+  final String scenario;
+  final bool reviewRequested;
+  final ValueChanged<String> onScenarioChanged;
+  final VoidCallback onReviewRequested;
+
+  @override
+  Widget build(BuildContext context) {
+    final sample = codeSamples[scenario]!;
+    return _Panel(
+      title: '3. 샌드박스 코드리뷰 시뮬레이터',
+      icon: Icons.terminal_outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final name in codeSamples.keys)
+                ChoiceChip(
+                  label: Text(name),
+                  selected: scenario == name,
+                  onSelected: (_) => onScenarioChanged(name),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _CodeBlock(text: sample.code),
+          const SizedBox(height: 12),
+          FilledButton.icon(
+            onPressed: onReviewRequested,
+            icon: const Icon(Icons.rate_review_outlined),
+            label: const Text('AI 리뷰 실행'),
+          ),
+          const SizedBox(height: 14),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: reviewRequested
+                ? Column(
+                    key: ValueKey(scenario),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ResultLine(label: '심각도', value: sample.severity),
+                      _ResultLine(label: '리뷰 요약', value: sample.review),
+                      _ResultLine(label: '수정 제안', value: sample.fix),
+                    ],
+                  )
+                : const Text('코드 샘플을 선택한 뒤 AI 리뷰 실행을 눌러 리뷰 결과를 확인하세요.',
+                    style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AiSearchSimulator extends StatelessWidget {
+  const _AiSearchSimulator({
+    required this.query,
+    required this.includeVector,
+    required this.onQueryChanged,
+    required this.onVectorChanged,
+  });
+
+  final String query;
+  final bool includeVector;
+  final ValueChanged<String> onQueryChanged;
+  final ValueChanged<bool> onVectorChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final results = searchResults[query]!;
+    return _Panel(
+      title: '4. AI 검색/추천 시뮬레이터',
+      icon: Icons.travel_explore_outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final item in searchResults.keys)
+                ChoiceChip(
+                  label: Text(item),
+                  selected: query == item,
+                  onSelected: (_) => onQueryChanged(item),
+                ),
+            ],
+          ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Switch(value: includeVector, onChanged: onVectorChanged),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('pgvector 유사도 후보 포함', style: TextStyle(fontWeight: FontWeight.w800)),
+                    SizedBox(height: 4),
+                    Text(
+                      '키워드 검색 결과와 임베딩 검색 결과를 함께 섞어 추천합니다.',
+                      style: TextStyle(height: 1.35, color: Color(0xFF4D5C57)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          for (final result in results)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _SearchResultTile(result: result, includeVector: includeVector),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResultLine extends StatelessWidget {
+  const _ResultLine({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 86,
+            child: Text(label, style: const TextStyle(color: Color(0xFF1F6F68), fontWeight: FontWeight.w800)),
+          ),
+          Expanded(child: Text(value, style: const TextStyle(height: 1.35))),
+        ],
+      ),
+    );
+  }
+}
+
+class _PathStep extends StatelessWidget {
+  const _PathStep({required this.week, required this.title, required this.body});
+
+  final int week;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 15,
+          backgroundColor: const Color(0xFF1F6F68),
+          foregroundColor: Colors.white,
+          child: Text('$week', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 4),
+              Text(body, style: const TextStyle(color: Color(0xFF4D5C57), height: 1.35)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CodeBlock extends StatelessWidget {
+  const _CodeBlock({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2523),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(text, style: const TextStyle(color: Color(0xFFE7F4EE), fontFamily: 'monospace', height: 1.45)),
+    );
+  }
+}
+
+class _SearchResultTile extends StatelessWidget {
+  const _SearchResultTile({required this.result, required this.includeVector});
+
+  final SearchResult result;
+  final bool includeVector;
+
+  @override
+  Widget build(BuildContext context) {
+    final score = includeVector ? result.hybridScore : result.keywordScore;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8F3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD9DED8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(result.title, style: const TextStyle(fontWeight: FontWeight.w900))),
+              Text('${(score * 100).round()}점', style: const TextStyle(color: Color(0xFF1F6F68))),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(result.reason, style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
+        ],
+      ),
+    );
+  }
+}
+
 class _SelectableDemoCard extends StatelessWidget {
   const _SelectableDemoCard({required this.profile, required this.selected, required this.onTap});
 
@@ -547,83 +1074,6 @@ class _SelectableDemoCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _LearningPathPreview extends StatelessWidget {
-  const _LearningPathPreview({required this.profile});
-
-  final DemoProfile profile;
-
-  @override
-  Widget build(BuildContext context) {
-    return _Panel(
-      title: '${profile.name} 추천 학습경로',
-      icon: Icons.route_outlined,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (final week in profile.weeks)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    radius: 15,
-                    backgroundColor: const Color(0xFF1F6F68),
-                    foregroundColor: Colors.white,
-                    child: Text('${week.$1}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(week.$2, style: const TextStyle(fontWeight: FontWeight.w800)),
-                        const SizedBox(height: 4),
-                        Text(week.$3, style: const TextStyle(color: Color(0xFF4D5C57), height: 1.35)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CodeReviewPreview extends StatelessWidget {
-  const _CodeReviewPreview({required this.profile});
-
-  final DemoProfile profile;
-
-  @override
-  Widget build(BuildContext context) {
-    return _Panel(
-      title: 'AI 코드리뷰 예시',
-      icon: Icons.rate_review_outlined,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E2523),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(profile.code, style: const TextStyle(color: Color(0xFFE7F4EE), fontFamily: 'monospace')),
-          ),
-          const SizedBox(height: 14),
-          Text(profile.reviewTitle, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
-          Text(profile.reviewBody, style: const TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
-        ],
       ),
     );
   }
@@ -698,6 +1148,116 @@ class _ArchitectureMap extends StatelessWidget {
   }
 }
 
+class _ArchitectureFlow extends StatelessWidget {
+  const _ArchitectureFlow();
+
+  @override
+  Widget build(BuildContext context) {
+    const steps = [
+      ('1', '진단 제출', 'Flutter Web이 답변과 목표 트랙을 gateway로 전송합니다.'),
+      ('2', '도메인 처리', 'learning-svc가 진단 점수, 약점, 경로 생성 요청을 정규화합니다.'),
+      ('3', 'AI 보조 생성', 'ai-svc가 Ollama chat/embed 계약으로 후보 경로와 콘텐츠 유사도를 계산합니다.'),
+      ('4', '학습 실행', 'sandbox-svc가 실습 실행과 코드리뷰 입력을 만들고 결과를 learning-svc에 돌려줍니다.'),
+      ('5', '상태 전파', 'Kafka/Outbox가 진단 완료, 경로 생성, 리뷰 완료 이벤트를 안전하게 전달합니다.'),
+    ];
+    return _Panel(
+      title: '주요 사용자 흐름',
+      icon: Icons.alt_route_outlined,
+      child: Column(
+        children: [
+          for (final step in steps)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _PathStep(week: int.parse(step.$1), title: step.$2, body: step.$3),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ServiceResponsibilityGrid extends StatelessWidget {
+  const _ServiceResponsibilityGrid();
+
+  @override
+  Widget build(BuildContext context) {
+    return _ResponsiveGrid(
+      minItemWidth: 280,
+      children: const [
+        _ServiceCard(name: 'devpath-gateway', role: '인증, CORS, 라우팅, API 진입점', data: '토큰 검증, 요청 상관관계 ID'),
+        _ServiceCard(name: 'platform-svc', role: '회원, 프로필, 온보딩 상태', data: 'users, profiles, onboarding_state'),
+        _ServiceCard(name: 'learning-svc', role: '진단, 학습경로, 콘텐츠 매칭', data: 'diagnoses, learning_paths, progress'),
+        _ServiceCard(name: 'ai-svc', role: 'Ollama 게이트웨이, 임베딩, 구조화 생성', data: '상태 없음, 외부 AI 호출 계약만 소유'),
+        _ServiceCard(name: 'sandbox-svc', role: '코드 실행, 테스트 결과, 리뷰 입력 생성', data: 'submissions, run_logs, review_targets'),
+        _ServiceCard(name: 'community-svc', role: '질문, 회고, 학습 공유', data: 'posts, comments, reactions'),
+      ],
+    );
+  }
+}
+
+class _ServiceCard extends StatelessWidget {
+  const _ServiceCard({required this.name, required this.role, required this.data});
+
+  final String name;
+  final String role;
+  final String data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD9DED8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Text(role, style: const TextStyle(height: 1.4)),
+          const SizedBox(height: 10),
+          Text('소유 데이터: $data', style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
+        ],
+      ),
+    );
+  }
+}
+
+class _ArchitectureContract extends StatelessWidget {
+  const _ArchitectureContract({required this.title, required this.icon, required this.lines});
+
+  final String title;
+  final IconData icon;
+  final List<String> lines;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      title: title,
+      icon: icon,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final line in lines)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.check_circle_outline, size: 18, color: Color(0xFF1F6F68)),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(line, style: const TextStyle(height: 1.35))),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ArchitectureRow extends StatelessWidget {
   const _ArchitectureRow({required this.title, required this.chips, required this.color});
 
@@ -766,6 +1326,8 @@ class _TechCard extends StatelessWidget {
             Text('개념: ${item.concept}', style: const TextStyle(height: 1.35)),
             const SizedBox(height: 8),
             Text('사용 방법: ${item.usage}', style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
+            const SizedBox(height: 8),
+            Text('운영 포인트: ${item.operation}', style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
           ],
         ),
       ),
@@ -798,6 +1360,10 @@ class DemoProfile {
     required this.name,
     required this.level,
     required this.summary,
+    required this.track,
+    required this.priority,
+    required this.aha,
+    required this.skills,
     required this.weeks,
     required this.code,
     required this.reviewTitle,
@@ -807,6 +1373,10 @@ class DemoProfile {
   final String name;
   final String level;
   final String summary;
+  final String track;
+  final String priority;
+  final String aha;
+  final List<(String, double)> skills;
   final List<(int, String, String)> weeks;
   final String code;
   final String reviewTitle;
@@ -818,6 +1388,16 @@ const demoProfiles = [
     name: '지수',
     level: 'JUNIOR · Spring MVC 약점',
     summary: 'Java 기본기는 있으나 Controller, 예외 처리, 테스트 경계가 약합니다.',
+    track: 'Spring Boot API 기본기 강화',
+    priority: 'REST 오류 모델, DTO 분리, MockMvc 테스트',
+    aha: 'null 반환을 상태코드와 문제 응답으로 바꾸는 순간',
+    skills: [
+      ('Java 문법', 0.72),
+      ('Spring MVC', 0.38),
+      ('JPA', 0.44),
+      ('테스트', 0.31),
+      ('분산 설계', 0.18),
+    ],
     weeks: [
       (1, 'REST Controller와 상태코드', '요청/응답 DTO와 400/404/409를 명확히 분리합니다.'),
       (2, 'JPA 트랜잭션 기초', '조회와 변경 use case를 나누고 짧은 트랜잭션을 연습합니다.'),
@@ -831,6 +1411,16 @@ const demoProfiles = [
     name: '민준',
     level: 'MID · 이벤트/분산 흐름 약점',
     summary: 'CRUD는 익숙하지만 Outbox, Kafka, 멱등 소비자 설계 경험이 부족합니다.',
+    track: 'MSA 이벤트 흐름 실무 전환',
+    priority: 'Outbox, Kafka Consumer, 멱등 처리',
+    aha: '이벤트는 한 번만 오지 않는다는 전제로 설계를 바꾸는 순간',
+    skills: [
+      ('Java 문법', 0.84),
+      ('Spring MVC', 0.77),
+      ('JPA', 0.69),
+      ('테스트', 0.58),
+      ('분산 설계', 0.36),
+    ],
     weeks: [
       (1, 'Transactional Outbox', '상태 변경과 이벤트 기록을 같은 트랜잭션에 묶습니다.'),
       (2, 'Kafka Consumer 멱등성', '중복 메시지를 전제로 조건부 update와 unique key를 설계합니다.'),
@@ -844,6 +1434,16 @@ const demoProfiles = [
     name: '서연',
     level: 'SENIOR · AI/검색 고도화 관심',
     summary: '서비스 설계는 강하지만 pgvector, LLM gateway, 검색 품질 튜닝을 강화하고 싶습니다.',
+    track: 'AI 기반 학습 추천/검색 고도화',
+    priority: '임베딩 검색, LLM 계약, 품질 평가',
+    aha: 'LLM 출력은 프롬프트가 아니라 계약과 검증으로 운영한다는 순간',
+    skills: [
+      ('Java 문법', 0.91),
+      ('Spring MVC', 0.86),
+      ('JPA', 0.82),
+      ('테스트', 0.74),
+      ('분산 설계', 0.67),
+    ],
     weeks: [
       (1, '임베딩과 HNSW', '콘텐츠 chunk와 768차원 벡터 검색 흐름을 설계합니다.'),
       (2, 'LLM 게이트웨이 계약', 'stream:false, 구조화 출력, 오류 매핑을 고정합니다.'),
@@ -855,6 +1455,84 @@ const demoProfiles = [
   ),
 ];
 
+List<(int, String, String)> _generatedWeeks(
+  DemoProfile profile,
+  String goal,
+  int totalWeeks,
+  Set<String> weakAreas,
+) {
+  final area = weakAreas.isEmpty ? profile.priority : weakAreas.first;
+  final reviewWeek = totalWeeks <= 8 ? 6 : 8;
+  return [
+    (1, '$area 기준 진단 리포트 정리', '${profile.name}의 약점 점수를 기준으로 불필요한 복습을 줄이고 시작점을 고정합니다.'),
+    (2, '$goal 핵심 API 과제', '요구사항, 테스트, 구현, 리뷰를 한 번의 짧은 루프로 묶습니다.'),
+    (reviewWeek, '샌드박스 실습과 AI 리뷰', '실행 결과, 실패 로그, 코드리뷰를 합쳐 다음 보강 항목을 자동 추출합니다.'),
+    (totalWeeks, '포트폴리오형 최종 점검', '경로 완료 기준을 체크리스트로 확인하고 다음 트랙 후보를 추천합니다.'),
+  ];
+}
+
+class CodeSample {
+  const CodeSample({required this.code, required this.severity, required this.review, required this.fix});
+
+  final String code;
+  final String severity;
+  final String review;
+  final String fix;
+}
+
+const codeSamples = {
+  'null 응답': CodeSample(
+    code: '@GetMapping("/users/{id}")\nUserResponse find(@PathVariable Long id) {\n  User user = repo.findById(id).orElse(null);\n  return mapper.toResponse(user);\n}',
+    severity: '높음 · 404/500 경계 불명확',
+    review: '존재하지 않는 사용자를 null로 흘려보내면 mapper에서 NPE가 발생하거나 모호한 200 응답이 될 수 있습니다.',
+    fix: 'orElseThrow로 NotFoundException을 던지고 ControllerAdvice에서 404 Problem 응답으로 매핑하세요.',
+  ),
+  '중복 이벤트': CodeSample(
+    code: '@KafkaListener(topics = "path.generated")\nvoid consume(PathEvent event) {\n  notificationRepository.save(toEntity(event));\n}',
+    severity: '중간 · 멱등성 누락',
+    review: 'Kafka consumer는 같은 메시지를 다시 받을 수 있으므로 단순 insert는 중복 알림을 만들 수 있습니다.',
+    fix: 'eventId unique key를 저장하고 이미 처리된 이벤트는 skip하도록 조건부 저장을 추가하세요.',
+  ),
+  'LLM JSON': CodeSample(
+    code: 'String body = ollama.chat(prompt);\nLearningPath path = objectMapper.readValue(body, LearningPath.class);\nreturn path;',
+    severity: '높음 · 구조화 출력 검증 부족',
+    review: 'LLM 응답은 JSON처럼 보여도 누락 필드, 문자열 내부 JSON, 설명 문장이 섞일 수 있습니다.',
+    fix: 'format schema, 2단계 parse, 필수 필드 검증, 502 오류 매핑을 게이트웨이 계층에 고정하세요.',
+  ),
+};
+
+class SearchResult {
+  const SearchResult({
+    required this.title,
+    required this.reason,
+    required this.keywordScore,
+    required this.hybridScore,
+  });
+
+  final String title;
+  final String reason;
+  final double keywordScore;
+  final double hybridScore;
+}
+
+const searchResults = {
+  '트랜잭션': [
+    SearchResult(title: 'JPA 트랜잭션 경계 실습', reason: '키워드가 직접 일치하고 서비스 계층 경계 설명이 포함됩니다.', keywordScore: 0.89, hybridScore: 0.91),
+    SearchResult(title: 'Outbox 패턴과 원자성', reason: '임베딩 검색에서 “DB 변경과 이벤트 발행” 문맥이 가깝게 잡힙니다.', keywordScore: 0.62, hybridScore: 0.86),
+    SearchResult(title: '읽기 전용 트랜잭션 튜닝', reason: '성능 관점의 보충 자료로 후순위 추천됩니다.', keywordScore: 0.71, hybridScore: 0.74),
+  ],
+  'Kafka': [
+    SearchResult(title: '멱등 Consumer 설계', reason: '중복 수신, dedup key, 재시도 전략을 함께 다룹니다.', keywordScore: 0.86, hybridScore: 0.9),
+    SearchResult(title: 'DLQ 운영 기준', reason: '장애 복구 시나리오와 poison payload 처리 기준이 연결됩니다.', keywordScore: 0.72, hybridScore: 0.84),
+    SearchResult(title: 'Transactional Outbox', reason: '이벤트 발행 신뢰성을 확보하는 선행 개념입니다.', keywordScore: 0.54, hybridScore: 0.8),
+  ],
+  'LLM': [
+    SearchResult(title: 'Ollama 구조화 출력 계약', reason: 'stream:false, format schema, 오류 매핑을 직접 설명합니다.', keywordScore: 0.91, hybridScore: 0.93),
+    SearchResult(title: '임베딩 기반 콘텐츠 추천', reason: 'LLM 생성 전 후보 검색 품질을 높이는 흐름입니다.', keywordScore: 0.48, hybridScore: 0.81),
+    SearchResult(title: 'AI 응답 검증 테스트', reason: 'malformed JSON과 timeout을 MockWebServer로 검증합니다.', keywordScore: 0.66, hybridScore: 0.79),
+  ],
+};
+
 class TechItem {
   const TechItem({
     required this.name,
@@ -862,6 +1540,7 @@ class TechItem {
     required this.reason,
     required this.concept,
     required this.usage,
+    required this.operation,
     required this.icon,
     required this.color,
   });
@@ -871,6 +1550,7 @@ class TechItem {
   final String reason;
   final String concept;
   final String usage;
+  final String operation;
   final IconData icon;
   final Color color;
 }
@@ -882,6 +1562,7 @@ const techItems = [
     reason: '웹, 관리자, 모바일 경험을 같은 UI 철학으로 맞추기 쉽습니다.',
     concept: '위젯 트리와 선언형 상태로 화면을 구성합니다.',
     usage: '프로토타입 쇼케이스와 실제 web/mobile 앱의 UX 검증에 사용합니다.',
+    operation: 'GitHub Pages 배포 시 `--base-href /prototype/`를 고정하고, 반응형 폭에서 텍스트 잘림을 테스트합니다.',
     icon: Icons.web_asset_outlined,
     color: Color(0xFF2D6CDF),
   ),
@@ -891,8 +1572,19 @@ const techItems = [
     reason: 'Java 21 기반의 안정적인 API, 보안, 테스트 생태계를 활용합니다.',
     concept: 'Controller, Service, Repository 계층으로 HTTP와 도메인 로직을 분리합니다.',
     usage: 'gateway, platform, learning, ai, sandbox 서비스를 구현합니다.',
+    operation: '서비스별 CI에서 context load, 계약 테스트, 오류 매핑 테스트를 분리해 회귀를 잡습니다.',
     icon: Icons.dns_outlined,
     color: Color(0xFF1F6F68),
+  ),
+  TechItem(
+    name: 'Spring Cloud Gateway',
+    kind: 'API Gateway',
+    reason: '프론트엔드가 여러 서비스를 직접 알지 않도록 진입점을 하나로 모읍니다.',
+    concept: '라우팅, 인증 필터, CORS, 요청 로깅을 앞단에서 처리합니다.',
+    usage: 'Flutter 요청을 platform/learning/ai/sandbox 서비스로 라우팅하고 JWT 검증을 담당합니다.',
+    operation: '서비스 장애가 전체 장애로 번지지 않도록 timeout, retry, correlation id를 관리합니다.',
+    icon: Icons.account_tree_outlined,
+    color: Color(0xFF3D7C47),
   ),
   TechItem(
     name: 'PostgreSQL + pgvector',
@@ -900,8 +1592,19 @@ const techItems = [
     reason: '관계형 데이터와 임베딩 검색을 한 DB 흐름에서 다룰 수 있습니다.',
     concept: 'VECTOR 컬럼과 HNSW 인덱스로 유사 콘텐츠를 빠르게 찾습니다.',
     usage: '학습 콘텐츠 매칭과 경로 생성 후보 검색에 사용합니다.',
+    operation: '임베딩 차원은 768로 검증하고, 스키마 변경은 shared Flyway migration으로 추적합니다.',
     icon: Icons.storage_outlined,
     color: Color(0xFFB7791F),
+  ),
+  TechItem(
+    name: 'Redis',
+    kind: '캐시/짧은 상태',
+    reason: '반복 조회가 많은 세션성 데이터와 랭킹/진행률 표시를 빠르게 처리합니다.',
+    concept: '만료 시간을 가진 key-value 저장소로 DB 부하와 응답 지연을 줄입니다.',
+    usage: '온보딩 진행 상태, 추천 후보 캐시, rate limit 보조 저장소로 사용합니다.',
+    operation: '캐시 정합성보다 원본 DB를 우선하고 TTL, key prefix, 장애 fallback을 명확히 둡니다.',
+    icon: Icons.speed_outlined,
+    color: Color(0xFF9D3A3A),
   ),
   TechItem(
     name: 'Kafka + Outbox',
@@ -909,6 +1612,7 @@ const techItems = [
     reason: 'DB 변경과 부작용 이벤트를 안전하게 연결합니다.',
     concept: '트랜잭션 안에 outbox row를 남기고 relay가 Kafka로 발행합니다.',
     usage: '가입, 진단 완료, 학습경로 생성 이후 상태 전이에 사용합니다.',
+    operation: 'consumer는 중복 수신을 전제로 event id dedup, DLQ, 재처리 절차를 가져야 합니다.',
     icon: Icons.sync_alt_outlined,
     color: Color(0xFF9D3A3A),
   ),
@@ -918,8 +1622,29 @@ const techItems = [
     reason: '외부 API 키 없이 생성/임베딩 계약을 빠르게 검증합니다.',
     concept: '로컬 HTTP API로 `/api/chat`, `/api/embed`를 제공합니다.',
     usage: 'ai-svc가 학습경로 JSON 생성과 임베딩 요청을 중계합니다.',
+    operation: '`qwen2.5:7b`, `nomic-embed-text`, `stream:false`, schema format, timeout 매핑을 테스트로 고정합니다.',
     icon: Icons.smart_toy_outlined,
     color: Color(0xFF6F5AA8),
+  ),
+  TechItem(
+    name: 'MockWebServer',
+    kind: '계약 테스트',
+    reason: 'CI에서 실제 Ollama를 호출하지 않고도 HTTP body와 오류 매핑을 검증합니다.',
+    concept: '테스트 안에서 가짜 HTTP 서버를 띄워 요청/응답 계약을 검사합니다.',
+    usage: '`/api/chat`의 `stream:false`, `format` 포함 여부와 `/api/embed` 입력 배열, 768차원을 확인합니다.',
+    operation: 'timeout, malformed JSON, upstream 5xx를 반드시 실패 케이스로 유지합니다.',
+    icon: Icons.rule_folder_outlined,
+    color: Color(0xFF2D6CDF),
+  ),
+  TechItem(
+    name: 'Docker Compose',
+    kind: '로컬 실행 환경',
+    reason: 'PostgreSQL, Redis, Kafka, Ollama 같은 의존성을 로컬에서 같은 방식으로 띄웁니다.',
+    concept: '여러 컨테이너와 네트워크, 볼륨을 하나의 compose 파일로 관리합니다.',
+    usage: 'devpath-shared가 개발자 로컬 실행 기준을 제공하고 각 서비스는 env로 접속합니다.',
+    operation: 'CI에서는 Ollama 실호출을 금지하고, 로컬 실행 지원과 테스트 계약을 분리합니다.',
+    icon: Icons.inventory_2_outlined,
+    color: Color(0xFF1F6F68),
   ),
   TechItem(
     name: 'GitHub Actions + Pages',
@@ -927,7 +1652,18 @@ const techItems = [
     reason: '정적 Flutter Web 산출물을 별도 서버 없이 공개할 수 있습니다.',
     concept: 'main push 시 build/web artifact를 Pages에 배포합니다.',
     usage: '`/prototype/` base href로 공개 프로토타입을 배포합니다.',
+    operation: 'Pages source는 GitHub Actions로 설정하고, artifact 업로드와 deploy-pages 권한을 확인합니다.',
     icon: Icons.rocket_launch_outlined,
     color: Color(0xFF3D7C47),
+  ),
+  TechItem(
+    name: 'GitOps',
+    kind: '운영 배포 전략',
+    reason: '서비스가 늘어날수록 배포 상태를 코드로 추적해야 환경 차이를 줄일 수 있습니다.',
+    concept: 'manifest 변경을 PR로 관리하고 클러스터가 선언된 상태를 따라가게 합니다.',
+    usage: 'devpath-gitops가 gateway와 각 domain service의 배포 manifest를 보관합니다.',
+    operation: 'secret, image tag, 환경별 values를 분리하고 rollback 기준을 문서화합니다.',
+    icon: Icons.hub_outlined,
+    color: Color(0xFFB7791F),
   ),
 ];

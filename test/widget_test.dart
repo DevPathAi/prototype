@@ -13,18 +13,25 @@ void main() {
     expect(find.text('기술 스택'), findsOneWidget);
   });
 
-  testWidgets('데모에서 진단 카드를 선택하면 학습경로와 코드리뷰가 바뀐다', (tester) async {
+  testWidgets('데모에서 진단, 경로, 코드리뷰 시뮬레이터를 조작할 수 있다', (tester) async {
     await tester.pumpWidget(const DevPathPrototypeApp());
 
     await tester.tap(find.text('데모'));
     await tester.pumpAndSettle();
 
-    expect(find.text('지수 추천 학습경로'), findsOneWidget);
+    expect(find.text('1. 진단 시뮬레이터'), findsOneWidget);
+    expect(find.text('2. 학습경로 생성 시뮬레이터'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('민준'), 180);
     await tester.tap(find.text('민준'));
     await tester.pumpAndSettle();
 
-    expect(find.text('민준 추천 학습경로'), findsOneWidget);
-    expect(find.text('중복 소비에 대한 방어가 없습니다'), findsOneWidget);
+    expect(find.textContaining('민준 · MID'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('AI 리뷰 실행'), 300);
+    await tester.tap(find.text('AI 리뷰 실행'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('심각도'), findsOneWidget);
+    expect(find.textContaining('NotFoundException'), findsOneWidget);
   });
 
   testWidgets('모바일 폭에서도 탭 전환이 가능하다', (tester) async {
@@ -39,6 +46,6 @@ void main() {
     await tester.tap(find.text('기술 스택'));
     await tester.pumpAndSettle();
 
-    expect(find.text('기술 선택 이유와 DevPath에서의 사용 방법'), findsOneWidget);
+    expect(find.text('제품 기능, 개발 속도, 운영 안정성을 기준으로 고른 기술 조합'), findsOneWidget);
   });
 }
