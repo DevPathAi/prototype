@@ -64,15 +64,21 @@ class _PrototypeHomePageState extends State<PrototypeHomePage> {
       builder: (context, constraints) {
         final wide = constraints.maxWidth >= 980;
         return Scaffold(
-          body: wide ? _DesktopShell(section: _section, onChanged: _setSection) : _MobileShell(section: _section),
+          body: wide
+              ? _DesktopShell(section: _section, onChanged: _setSection)
+              : _MobileShell(section: _section),
           bottomNavigationBar: wide
               ? null
               : NavigationBar(
                   selectedIndex: _section.index,
-                  onDestinationSelected: (index) => _setSection(PrototypeSection.values[index]),
+                  onDestinationSelected: (index) =>
+                      _setSection(PrototypeSection.values[index]),
                   destinations: [
                     for (final section in PrototypeSection.values)
-                      NavigationDestination(icon: Icon(section.icon), label: section.label),
+                      NavigationDestination(
+                        icon: Icon(section.icon),
+                        label: section.label,
+                      ),
                   ],
                 ),
         );
@@ -97,7 +103,8 @@ class _DesktopShell extends StatelessWidget {
       children: [
         NavigationRail(
           selectedIndex: section.index,
-          onDestinationSelected: (index) => onChanged(PrototypeSection.values[index]),
+          onDestinationSelected: (index) =>
+              onChanged(PrototypeSection.values[index]),
           labelType: NavigationRailLabelType.all,
           minWidth: 112,
           backgroundColor: const Color(0xFFE8EEE8),
@@ -107,7 +114,10 @@ class _DesktopShell extends StatelessWidget {
           ),
           destinations: [
             for (final item in PrototypeSection.values)
-              NavigationRailDestination(icon: Icon(item.icon), label: Text(item.label)),
+              NavigationRailDestination(
+                icon: Icon(item.icon),
+                label: Text(item.label),
+              ),
           ],
         ),
         Expanded(child: _SectionViewport(section: section)),
@@ -188,9 +198,21 @@ class OverviewSection extends StatelessWidget {
         _ResponsiveGrid(
           minItemWidth: 250,
           children: const [
-            _MetricTile(label: '1st Aha', value: '진단 → 12주 경로', color: Color(0xFF1F6F68)),
-            _MetricTile(label: '2nd Aha', value: '실습 → AI 코드리뷰', color: Color(0xFFB7791F)),
-            _MetricTile(label: '현재 초점', value: 'MD1 실연동', color: Color(0xFF9D3A3A)),
+            _MetricTile(
+              label: '1st Aha',
+              value: '진단 → 12주 경로',
+              color: Color(0xFF1F6F68),
+            ),
+            _MetricTile(
+              label: '2nd Aha',
+              value: '실습 → AI 코드리뷰',
+              color: Color(0xFFB7791F),
+            ),
+            _MetricTile(
+              label: '현재 초점',
+              value: 'MD1 실연동',
+              color: Color(0xFF9D3A3A),
+            ),
           ],
         ),
         const SizedBox(height: 24),
@@ -256,7 +278,10 @@ class _DemoSectionState extends State<DemoSection> {
               '각 데모는 실제 서비스 화면에 가까운 페이지 단위로 구성했습니다. 진단, 학습경로 생성, 샌드박스 코드리뷰, AI 검색을 각각 독립된 시뮬레이터로 조작할 수 있습니다.',
         ),
         const SizedBox(height: 18),
-        _DemoPageNavigation(selected: _page, onChanged: (page) => setState(() => _page = page)),
+        _DemoPageNavigation(
+          selected: _page,
+          onChanged: (page) => setState(() => _page = page),
+        ),
         const SizedBox(height: 18),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 180),
@@ -264,66 +289,70 @@ class _DemoSectionState extends State<DemoSection> {
             key: ValueKey(_page),
             child: switch (_page) {
               DemoPage.diagnosis => _ServiceDemoPage(
-                  title: '진단 페이지',
-                  subtitle: '온보딩 답변과 역량 점수를 바탕으로 현재 출발점을 판정합니다.',
-                  icon: Icons.fact_check_outlined,
-                  status: '시뮬레이션 실행 중',
-                  child: _DiagnosisSimulator(
-                    selected: _selected,
-                    onProfileChanged: (profile) => setState(() {
-                      _selected = profile;
-                      _reviewRequested = false;
-                    }),
-                  ),
+                title: '진단 페이지',
+                subtitle: '온보딩 답변과 역량 점수를 바탕으로 현재 출발점을 판정합니다.',
+                icon: Icons.fact_check_outlined,
+                status: '시뮬레이션 실행 중',
+                child: _DiagnosisSimulator(
+                  selected: _selected,
+                  onProfileChanged: (profile) => setState(() {
+                    _selected = profile;
+                    _reviewRequested = false;
+                  }),
                 ),
+              ),
               DemoPage.path => _ServiceDemoPage(
-                  title: '학습경로 페이지',
-                  subtitle: '목표, 주간 학습 시간, 약점 영역을 바꿔 추천 경로를 생성합니다.',
-                  icon: Icons.route_outlined,
-                  status: '경로 생성 준비',
-                  child: _PathGeneratorSimulator(
-                    profile: _selected,
-                    goal: _goal,
-                    weeklyHours: _weeklyHours,
-                    weakAreas: _weakAreas,
-                    onGoalChanged: (goal) => setState(() => _goal = goal),
-                    onHoursChanged: (hours) => setState(() => _weeklyHours = hours),
-                    onAreaToggled: (area) => setState(() {
-                      if (_weakAreas.contains(area)) {
-                        _weakAreas.remove(area);
-                      } else {
-                        _weakAreas.add(area);
-                      }
-                    }),
-                  ),
+                title: '학습경로 페이지',
+                subtitle: '목표, 주간 학습 시간, 약점 영역을 바꿔 추천 경로를 생성합니다.',
+                icon: Icons.route_outlined,
+                status: '경로 생성 준비',
+                child: _PathGeneratorSimulator(
+                  profile: _selected,
+                  goal: _goal,
+                  weeklyHours: _weeklyHours,
+                  weakAreas: _weakAreas,
+                  onGoalChanged: (goal) => setState(() => _goal = goal),
+                  onHoursChanged: (hours) =>
+                      setState(() => _weeklyHours = hours),
+                  onAreaToggled: (area) => setState(() {
+                    if (_weakAreas.contains(area)) {
+                      _weakAreas.remove(area);
+                    } else {
+                      _weakAreas.add(area);
+                    }
+                  }),
                 ),
+              ),
               DemoPage.sandbox => _ServiceDemoPage(
-                  title: '샌드박스 페이지',
-                  subtitle: '실습 코드 샘플을 실행 대상으로 선택하고 AI 코드리뷰 결과를 확인합니다.',
-                  icon: Icons.terminal_outlined,
-                  status: _reviewRequested ? 'AI 리뷰 완료' : '리뷰 대기',
-                  child: _SandboxReviewSimulator(
-                    scenario: _codeScenario,
-                    reviewRequested: _reviewRequested,
-                    onScenarioChanged: (scenario) => setState(() {
-                      _codeScenario = scenario;
-                      _reviewRequested = false;
-                    }),
-                    onReviewRequested: () => setState(() => _reviewRequested = true),
-                  ),
+                title: '샌드박스 페이지',
+                subtitle: '실습 코드 샘플을 실행 대상으로 선택하고 AI 코드리뷰 결과를 확인합니다.',
+                icon: Icons.terminal_outlined,
+                status: _reviewRequested ? 'AI 리뷰 완료' : '리뷰 대기',
+                child: _SandboxReviewSimulator(
+                  scenario: _codeScenario,
+                  reviewRequested: _reviewRequested,
+                  onScenarioChanged: (scenario) => setState(() {
+                    _codeScenario = scenario;
+                    _reviewRequested = false;
+                  }),
+                  onReviewRequested: () =>
+                      setState(() => _reviewRequested = true),
                 ),
+              ),
               DemoPage.search => _ServiceDemoPage(
-                  title: 'AI 검색 페이지',
-                  subtitle: '키워드 검색과 pgvector 유사도 후보를 섞어 추천 품질 변화를 비교합니다.',
-                  icon: Icons.travel_explore_outlined,
-                  status: _includeVector ? 'Hybrid 검색' : 'Keyword 검색',
-                  child: _AiSearchSimulator(
-                    query: _searchQuery,
-                    includeVector: _includeVector,
-                    onQueryChanged: (query) => setState(() => _searchQuery = query),
-                    onVectorChanged: (value) => setState(() => _includeVector = value),
-                  ),
+                title: 'AI 검색 페이지',
+                subtitle: '키워드 검색과 pgvector 유사도 후보를 섞어 추천 품질 변화를 비교합니다.',
+                icon: Icons.travel_explore_outlined,
+                status: _includeVector ? 'Hybrid 검색' : 'Keyword 검색',
+                child: _AiSearchSimulator(
+                  query: _searchQuery,
+                  includeVector: _includeVector,
+                  onQueryChanged: (query) =>
+                      setState(() => _searchQuery = query),
+                  onVectorChanged: (value) =>
+                      setState(() => _includeVector = value),
                 ),
+              ),
             },
           ),
         ),
@@ -443,11 +472,22 @@ class _HeroBand extends StatelessWidget {
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('DevPath AI', style: TextStyle(fontSize: 42, fontWeight: FontWeight.w800, height: 1.1)),
+                Text(
+                  'DevPath AI',
+                  style: TextStyle(
+                    fontSize: 42,
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                  ),
+                ),
                 SizedBox(height: 12),
                 Text(
                   '진단부터 학습경로, 샌드박스 실습, AI 코드리뷰까지 연결하는 백엔드 개발자 성장 플랫폼입니다.',
-                  style: TextStyle(fontSize: 18, height: 1.55, color: Color(0xFF35443F)),
+                  style: TextStyle(
+                    fontSize: 18,
+                    height: 1.55,
+                    color: Color(0xFF35443F),
+                  ),
                 ),
               ],
             ),
@@ -489,7 +529,10 @@ class _FlowPreview extends StatelessWidget {
               children: [
                 Icon(item.$2, color: item.$3),
                 const SizedBox(height: 8),
-                Text(item.$1, style: const TextStyle(fontWeight: FontWeight.w700)),
+                Text(
+                  item.$1,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
               ],
             ),
           ),
@@ -499,7 +542,11 @@ class _FlowPreview extends StatelessWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.eyebrow, required this.title, required this.body});
+  const _SectionHeader({
+    required this.eyebrow,
+    required this.title,
+    required this.body,
+  });
 
   final String eyebrow;
   final String title;
@@ -510,11 +557,31 @@ class _SectionHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(eyebrow, style: const TextStyle(color: Color(0xFF1F6F68), fontWeight: FontWeight.w800)),
+        Text(
+          eyebrow,
+          style: const TextStyle(
+            color: Color(0xFF1F6F68),
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         const SizedBox(height: 8),
-        Text(title, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800, height: 1.22)),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            height: 1.22,
+          ),
+        ),
         const SizedBox(height: 10),
-        Text(body, style: const TextStyle(fontSize: 16, height: 1.55, color: Color(0xFF4D5C57))),
+        Text(
+          body,
+          style: const TextStyle(
+            fontSize: 16,
+            height: 1.55,
+            color: Color(0xFF4D5C57),
+          ),
+        ),
       ],
     );
   }
@@ -530,17 +597,17 @@ class _ResponsiveGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final columns = (constraints.maxWidth / minItemWidth).floor().clamp(1, 3);
+        final columns = (constraints.maxWidth / minItemWidth).floor().clamp(
+          1,
+          3,
+        );
         final itemWidth = (constraints.maxWidth - (columns - 1) * 14) / columns;
         return Wrap(
           spacing: 14,
           runSpacing: 14,
           children: [
             for (final child in children)
-              SizedBox(
-                width: itemWidth,
-                child: child,
-              ),
+              SizedBox(width: itemWidth, child: child),
           ],
         );
       },
@@ -549,7 +616,11 @@ class _ResponsiveGrid extends StatelessWidget {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.icon, required this.title, required this.body});
+  const _InfoCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
 
   final IconData icon;
   final String title;
@@ -570,9 +641,15 @@ class _InfoCard extends StatelessWidget {
           children: [
             Icon(icon, color: const Color(0xFF1F6F68)),
             const SizedBox(height: 14),
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+            ),
             const SizedBox(height: 8),
-            Text(body, style: const TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+            Text(
+              body,
+              style: const TextStyle(height: 1.45, color: Color(0xFF4D5C57)),
+            ),
           ],
         ),
       ),
@@ -581,7 +658,11 @@ class _InfoCard extends StatelessWidget {
 }
 
 class _MetricTile extends StatelessWidget {
-  const _MetricTile({required this.label, required this.value, required this.color});
+  const _MetricTile({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
 
   final String label;
   final String value;
@@ -599,9 +680,15 @@ class _MetricTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
+          Text(
+            label,
+            style: TextStyle(color: color, fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 12),
-          Text(value, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          ),
         ],
       ),
     );
@@ -674,9 +761,9 @@ class _ServiceDemoPage extends StatelessWidget {
               color: Color(0xFFE8EEE8),
               borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
             ),
-            child: Row(
-              children: [
-                Container(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final iconTile = Container(
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
@@ -684,25 +771,65 @@ class _ServiceDemoPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: Colors.white),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
-                      const SizedBox(height: 4),
-                      Text(subtitle, style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Chip(
+                );
+                final statusChip = Chip(
                   label: Text(status),
                   side: const BorderSide(color: Color(0xFF1F6F68)),
                   backgroundColor: Colors.white,
-                ),
-              ],
+                );
+                final titleText = Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
+                );
+                final subtitleText = Text(
+                  subtitle,
+                  style: const TextStyle(
+                    height: 1.35,
+                    color: Color(0xFF4D5C57),
+                  ),
+                );
+
+                if (constraints.maxWidth < 560) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          iconTile,
+                          const SizedBox(width: 14),
+                          Expanded(child: titleText),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      subtitleText,
+                      const SizedBox(height: 12),
+                      statusChip,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    iconTile,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          titleText,
+                          const SizedBox(height: 4),
+                          subtitleText,
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    statusChip,
+                  ],
+                );
+              },
             ),
           ),
           Padding(
@@ -717,10 +844,7 @@ class _ServiceDemoPage extends StatelessWidget {
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(18),
-            child: child,
-          ),
+          Padding(padding: const EdgeInsets.all(18), child: child),
         ],
       ),
     );
@@ -742,13 +866,19 @@ class _StatusPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFD9DED8)),
       ),
-      child: Text('$label: $value', style: const TextStyle(fontWeight: FontWeight.w700)),
+      child: Text(
+        '$label: $value',
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
     );
   }
 }
 
 class _DiagnosisSimulator extends StatelessWidget {
-  const _DiagnosisSimulator({required this.selected, required this.onProfileChanged});
+  const _DiagnosisSimulator({
+    required this.selected,
+    required this.onProfileChanged,
+  });
 
   final DemoProfile selected;
   final ValueChanged<DemoProfile> onProfileChanged;
@@ -764,8 +894,10 @@ class _DiagnosisSimulator extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('실제 서비스의 진단 시작 화면처럼 학습자 상태를 선택해 결과 변화를 확인합니다.',
-                  style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+              const Text(
+                '실제 서비스의 진단 시작 화면처럼 학습자 상태를 선택해 결과 변화를 확인합니다.',
+                style: TextStyle(height: 1.45, color: Color(0xFF4D5C57)),
+              ),
               const SizedBox(height: 14),
               for (final profile in demoProfiles)
                 Padding(
@@ -819,7 +951,13 @@ class _OnboardingAnswers extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(answer.$1, style: const TextStyle(color: Color(0xFF1F6F68), fontWeight: FontWeight.w900)),
+                  Text(
+                    answer.$1,
+                    style: const TextStyle(
+                      color: Color(0xFF1F6F68),
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   Text(answer.$2, style: const TextStyle(height: 1.35)),
                 ],
@@ -851,7 +989,12 @@ class _SkillRadar extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: Text(skill.$1, style: const TextStyle(fontWeight: FontWeight.w800))),
+                      Expanded(
+                        child: Text(
+                          skill.$1,
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
                       Text('${(skill.$2 * 100).round()}점'),
                     ],
                   ),
@@ -863,8 +1006,8 @@ class _SkillRadar extends StatelessWidget {
                     color: skill.$2 >= 0.7
                         ? const Color(0xFF1F6F68)
                         : skill.$2 >= 0.45
-                            ? const Color(0xFFB7791F)
-                            : const Color(0xFF9D3A3A),
+                        ? const Color(0xFFB7791F)
+                        : const Color(0xFF9D3A3A),
                     backgroundColor: const Color(0xFFE8EEE8),
                   ),
                 ],
@@ -893,7 +1036,10 @@ class _DiagnosisResult extends StatelessWidget {
           _ResultLine(label: '우선 보강', value: profile.priority),
           _ResultLine(label: 'Aha 포인트', value: profile.aha),
           const SizedBox(height: 12),
-          Text(profile.summary, style: const TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+          Text(
+            profile.summary,
+            style: const TextStyle(height: 1.45, color: Color(0xFF4D5C57)),
+          ),
         ],
       ),
     );
@@ -921,8 +1067,16 @@ class _PathGeneratorSimulator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final totalWeeks = weeklyHours >= 10 ? 8 : weeklyHours >= 6 ? 10 : 12;
-    final intensity = weeklyHours >= 10 ? '집중형' : weeklyHours >= 6 ? '균형형' : '완주형';
+    final totalWeeks = weeklyHours >= 10
+        ? 8
+        : weeklyHours >= 6
+        ? 10
+        : 12;
+    final intensity = weeklyHours >= 10
+        ? '집중형'
+        : weeklyHours >= 6
+        ? '균형형'
+        : '완주형';
     return _ResponsiveGrid(
       minItemWidth: 340,
       children: [
@@ -932,7 +1086,10 @@ class _PathGeneratorSimulator extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('목표 트랙', style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text(
+                '목표 트랙',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -947,16 +1104,34 @@ class _PathGeneratorSimulator extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Text('주간 학습 시간: ${weeklyHours.round()}시간', style: const TextStyle(fontWeight: FontWeight.w800)),
-              Slider(value: weeklyHours, min: 3, max: 14, divisions: 11, onChanged: onHoursChanged),
+              Text(
+                '주간 학습 시간: ${weeklyHours.round()}시간',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+              Slider(
+                value: weeklyHours,
+                min: 3,
+                max: 14,
+                divisions: 11,
+                onChanged: onHoursChanged,
+              ),
               const SizedBox(height: 10),
-              const Text('집중 보강 영역', style: TextStyle(fontWeight: FontWeight.w800)),
+              const Text(
+                '집중 보강 영역',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final area in const ['Spring MVC', 'JPA', '테스트', 'Kafka', 'pgvector'])
+                  for (final area in const [
+                    'Spring MVC',
+                    'JPA',
+                    '테스트',
+                    'Kafka',
+                    'pgvector',
+                  ])
                     FilterChip(
                       label: Text(area),
                       selected: weakAreas.contains(area),
@@ -973,26 +1148,54 @@ class _PathGeneratorSimulator extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _ResultLine(label: '경로 타입', value: '$goal · $intensity · $totalWeeks주'),
-              _ResultLine(label: '학습자 기준', value: '${profile.name} · ${profile.level}'),
-              _ResultLine(label: '핵심 보강', value: weakAreas.isEmpty ? profile.priority : weakAreas.join(', ')),
+              _ResultLine(
+                label: '경로 타입',
+                value: '$goal · $intensity · $totalWeeks주',
+              ),
+              _ResultLine(
+                label: '학습자 기준',
+                value: '${profile.name} · ${profile.level}',
+              ),
+              _ResultLine(
+                label: '핵심 보강',
+                value: weakAreas.isEmpty
+                    ? profile.priority
+                    : weakAreas.join(', '),
+              ),
               const SizedBox(height: 12),
-              for (final week in _generatedWeeks(profile, goal, totalWeeks, weakAreas))
+              for (final week in _generatedWeeks(
+                profile,
+                goal,
+                totalWeeks,
+                weakAreas,
+              ))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _PathStep(week: week.$1, title: week.$2, body: week.$3),
+                  child: _PathStep(
+                    week: week.$1,
+                    title: week.$2,
+                    body: week.$3,
+                  ),
                 ),
             ],
           ),
         ),
-        _PathExecutionBoard(profile: profile, goal: goal, totalWeeks: totalWeeks),
+        _PathExecutionBoard(
+          profile: profile,
+          goal: goal,
+          totalWeeks: totalWeeks,
+        ),
       ],
     );
   }
 }
 
 class _PathExecutionBoard extends StatelessWidget {
-  const _PathExecutionBoard({required this.profile, required this.goal, required this.totalWeeks});
+  const _PathExecutionBoard({
+    required this.profile,
+    required this.goal,
+    required this.totalWeeks,
+  });
 
   final DemoProfile profile;
   final String goal;
@@ -1022,7 +1225,9 @@ class _PathExecutionBoard extends StatelessWidget {
                 children: [
                   Icon(
                     task.$2 ? Icons.check_circle : Icons.radio_button_unchecked,
-                    color: task.$2 ? const Color(0xFF1F6F68) : const Color(0xFF697772),
+                    color: task.$2
+                        ? const Color(0xFF1F6F68)
+                        : const Color(0xFF697772),
                   ),
                   const SizedBox(width: 10),
                   Expanded(child: Text(task.$1)),
@@ -1065,8 +1270,10 @@ class _SandboxReviewSimulator extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('실제 서비스의 샌드박스 목록처럼 리뷰할 과제를 선택합니다.',
-                  style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+              const Text(
+                '실제 서비스의 샌드박스 목록처럼 리뷰할 과제를 선택합니다.',
+                style: TextStyle(height: 1.45, color: Color(0xFF4D5C57)),
+              ),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
@@ -1098,8 +1305,14 @@ class _SandboxReviewSimulator extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _ConsoleLine(status: 'PASS', text: '컴파일 및 기본 테스트 실행'),
-              _ConsoleLine(status: scenario == 'null 응답' ? 'FAIL' : 'WARN', text: sample.severity),
-              _ConsoleLine(status: 'INFO', text: '리뷰 대상 diff와 실행 로그를 AI 리뷰 입력으로 전달'),
+              _ConsoleLine(
+                status: scenario == 'null 응답' ? 'FAIL' : 'WARN',
+                text: sample.severity,
+              ),
+              _ConsoleLine(
+                status: 'INFO',
+                text: '리뷰 대상 diff와 실행 로그를 AI 리뷰 입력으로 전달',
+              ),
               const SizedBox(height: 14),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
@@ -1113,8 +1326,13 @@ class _SandboxReviewSimulator extends StatelessWidget {
                           _ResultLine(label: '수정 제안', value: sample.fix),
                         ],
                       )
-                    : const Text('테스트 실행 및 AI 리뷰 버튼을 누르면 실행 로그와 리뷰 결과가 이 영역에 표시됩니다.',
-                        style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+                    : const Text(
+                        '테스트 실행 및 AI 리뷰 버튼을 누르면 실행 로그와 리뷰 결과가 이 영역에 표시됩니다.',
+                        style: TextStyle(
+                          height: 1.45,
+                          color: Color(0xFF4D5C57),
+                        ),
+                      ),
               ),
             ],
           ),
@@ -1146,7 +1364,10 @@ class _ConsoleLine extends StatelessWidget {
         color: const Color(0xFF1E2523),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text('[$status] $text', style: TextStyle(color: color, fontFamily: 'monospace', height: 1.35)),
+      child: Text(
+        '[$status] $text',
+        style: TextStyle(color: color, fontFamily: 'monospace', height: 1.35),
+      ),
     );
   }
 }
@@ -1178,7 +1399,10 @@ class _AiSearchSimulator extends StatelessWidget {
             children: [
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF7F8F3),
                   borderRadius: BorderRadius.circular(8),
@@ -1188,7 +1412,12 @@ class _AiSearchSimulator extends StatelessWidget {
                   children: [
                     const Icon(Icons.search, color: Color(0xFF1F6F68)),
                     const SizedBox(width: 10),
-                    Expanded(child: Text('검색어: $query', style: const TextStyle(fontWeight: FontWeight.w800))),
+                    Expanded(
+                      child: Text(
+                        '검색어: $query',
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1215,11 +1444,17 @@ class _AiSearchSimulator extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('pgvector 유사도 후보 포함', style: TextStyle(fontWeight: FontWeight.w800)),
+                        Text(
+                          'pgvector 유사도 후보 포함',
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
                         SizedBox(height: 4),
                         Text(
                           '키워드 검색 결과와 임베딩 검색 결과를 함께 섞어 추천합니다.',
-                          style: TextStyle(height: 1.35, color: Color(0xFF4D5C57)),
+                          style: TextStyle(
+                            height: 1.35,
+                            color: Color(0xFF4D5C57),
+                          ),
                         ),
                       ],
                     ),
@@ -1227,7 +1462,12 @@ class _AiSearchSimulator extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              _ResultLine(label: '검색 방식', value: includeVector ? 'BM25 + vector hybrid ranking' : 'keyword ranking only'),
+              _ResultLine(
+                label: '검색 방식',
+                value: includeVector
+                    ? 'BM25 + vector hybrid ranking'
+                    : 'keyword ranking only',
+              ),
               _ResultLine(label: '후보 소스', value: '학습 콘텐츠, 실습 과제, 코드리뷰 패턴'),
             ],
           ),
@@ -1241,7 +1481,10 @@ class _AiSearchSimulator extends StatelessWidget {
               for (final result in results)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: _SearchResultTile(result: result, includeVector: includeVector),
+                  child: _SearchResultTile(
+                    result: result,
+                    includeVector: includeVector,
+                  ),
                 ),
             ],
           ),
@@ -1285,7 +1528,13 @@ class _ResultLine extends StatelessWidget {
         children: [
           SizedBox(
             width: 86,
-            child: Text(label, style: const TextStyle(color: Color(0xFF1F6F68), fontWeight: FontWeight.w800)),
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF1F6F68),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ),
           Expanded(child: Text(value, style: const TextStyle(height: 1.35))),
         ],
@@ -1295,7 +1544,11 @@ class _ResultLine extends StatelessWidget {
 }
 
 class _PathStep extends StatelessWidget {
-  const _PathStep({required this.week, required this.title, required this.body});
+  const _PathStep({
+    required this.week,
+    required this.title,
+    required this.body,
+  });
 
   final int week;
   final String title;
@@ -1310,7 +1563,10 @@ class _PathStep extends StatelessWidget {
           radius: 15,
           backgroundColor: const Color(0xFF1F6F68),
           foregroundColor: Colors.white,
-          child: Text('$week', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          child: Text(
+            '$week',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1319,7 +1575,10 @@ class _PathStep extends StatelessWidget {
             children: [
               Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: 4),
-              Text(body, style: const TextStyle(color: Color(0xFF4D5C57), height: 1.35)),
+              Text(
+                body,
+                style: const TextStyle(color: Color(0xFF4D5C57), height: 1.35),
+              ),
             ],
           ),
         ),
@@ -1342,7 +1601,14 @@ class _CodeBlock extends StatelessWidget {
         color: const Color(0xFF1E2523),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(text, style: const TextStyle(color: Color(0xFFE7F4EE), fontFamily: 'monospace', height: 1.45)),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFFE7F4EE),
+          fontFamily: 'monospace',
+          height: 1.45,
+        ),
+      ),
     );
   }
 }
@@ -1368,12 +1634,23 @@ class _SearchResultTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(result.title, style: const TextStyle(fontWeight: FontWeight.w900))),
-              Text('${(score * 100).round()}점', style: const TextStyle(color: Color(0xFF1F6F68))),
+              Expanded(
+                child: Text(
+                  result.title,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+              Text(
+                '${(score * 100).round()}점',
+                style: const TextStyle(color: Color(0xFF1F6F68)),
+              ),
             ],
           ),
           const SizedBox(height: 6),
-          Text(result.reason, style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
+          Text(
+            result.reason,
+            style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57)),
+          ),
         ],
       ),
     );
@@ -1381,7 +1658,11 @@ class _SearchResultTile extends StatelessWidget {
 }
 
 class _SelectableDemoCard extends StatelessWidget {
-  const _SelectableDemoCard({required this.profile, required this.selected, required this.onTap});
+  const _SelectableDemoCard({
+    required this.profile,
+    required this.selected,
+    required this.onTap,
+  });
 
   final DemoProfile profile;
   final bool selected;
@@ -1401,14 +1682,31 @@ class _SelectableDemoCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: selected ? const Color(0xFFE1F3EE) : Colors.white,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: selected ? const Color(0xFF1F6F68) : const Color(0xFFD9DED8), width: 1.5),
+            border: Border.all(
+              color: selected
+                  ? const Color(0xFF1F6F68)
+                  : const Color(0xFFD9DED8),
+              width: 1.5,
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(profile.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              Text(
+                profile.name,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text(profile.level, style: const TextStyle(color: Color(0xFF1F6F68), fontWeight: FontWeight.w700)),
+              Text(
+                profile.level,
+                style: const TextStyle(
+                  color: Color(0xFF1F6F68),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 10),
               Text(profile.summary, style: const TextStyle(height: 1.4)),
             ],
@@ -1442,7 +1740,15 @@ class _Panel extends StatelessWidget {
             children: [
               Icon(icon, color: const Color(0xFF1F6F68)),
               const SizedBox(width: 10),
-              Expanded(child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800))),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -1460,9 +1766,21 @@ class _ArchitectureMap extends StatelessWidget {
   Widget build(BuildContext context) {
     final rows = [
       ('클라이언트', ['Flutter Web', '관리자', '모바일'], const Color(0xFF2D6CDF)),
-      ('게이트웨이', ['Spring Cloud Gateway', 'JWT', 'OAuth'], const Color(0xFF1F6F68)),
-      ('도메인 서비스', ['platform', 'learning', 'ai', 'sandbox', 'community'], const Color(0xFFB7791F)),
-      ('데이터/이벤트', ['PostgreSQL', 'pgvector', 'Redis', 'Kafka', 'Ollama'], const Color(0xFF9D3A3A)),
+      (
+        '게이트웨이',
+        ['Spring Cloud Gateway', 'JWT', 'OAuth'],
+        const Color(0xFF1F6F68),
+      ),
+      (
+        '도메인 서비스',
+        ['platform', 'learning', 'ai', 'sandbox', 'community'],
+        const Color(0xFFB7791F),
+      ),
+      (
+        '데이터/이벤트',
+        ['PostgreSQL', 'pgvector', 'Redis', 'Kafka', 'Ollama'],
+        const Color(0xFF9D3A3A),
+      ),
     ];
     const connectors = [
       'HTTPS 요청 · JWT 전달',
@@ -1480,7 +1798,11 @@ class _ArchitectureMap extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < rows.length; i++) ...[
-            _ArchitectureRow(title: rows[i].$1, chips: rows[i].$2, color: rows[i].$3),
+            _ArchitectureRow(
+              title: rows[i].$1,
+              chips: rows[i].$2,
+              color: rows[i].$3,
+            ),
             if (i < rows.length - 1)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 10),
@@ -1579,43 +1901,50 @@ class _CommunicationMatrix extends StatelessWidget {
             from: 'Flutter Web/Mobile',
             to: 'devpath-gateway',
             protocol: 'HTTPS + JSON',
-            contract: 'access token은 Authorization header, refresh는 httpOnly cookie 기준. 클라이언트는 내부 서비스 주소를 모릅니다.',
+            contract:
+                'access token은 Authorization header, refresh는 httpOnly cookie 기준. 클라이언트는 내부 서비스 주소를 모릅니다.',
           ),
           _CommunicationRow(
             from: 'devpath-gateway',
             to: 'platform-svc',
             protocol: 'Route by path',
-            contract: '현재 구현: /oauth2/**, /login/**, /auth/**, /users/** → platform. OAuth/JWT 발급, 사용자/프로필 조회 담당.',
+            contract:
+                '현재 구현: /oauth2/**, /login/**, /auth/**, /users/** → platform. OAuth/JWT 발급, 사용자/프로필 조회 담당.',
           ),
           _CommunicationRow(
             from: 'devpath-gateway',
             to: 'learning-svc',
             protocol: 'Route by path',
-            contract: '현재 구현: /onboarding/assessments/** → learning. 진단, 온보딩 평가, 학습경로 생성 진입점.',
+            contract:
+                '현재 구현: /onboarding/assessments/** → learning. 진단, 온보딩 평가, 학습경로 생성 진입점.',
           ),
           _CommunicationRow(
             from: 'learning-svc',
             to: 'ai-svc',
             protocol: 'Internal HTTP',
-            contract: '학습경로 생성과 임베딩 요청을 /ai/path/generate, /ai/embed 계약으로 위임. ai-svc는 Ollama/LLM 세부사항을 숨깁니다.',
+            contract:
+                '학습경로 생성과 임베딩 요청을 /ai/path/generate, /ai/embed 계약으로 위임. ai-svc는 Ollama/LLM 세부사항을 숨깁니다.',
           ),
           _CommunicationRow(
             from: 'learning-svc / frontend',
             to: 'sandbox-svc',
             protocol: 'Gateway route + service API',
-            contract: '학습 과제의 runnable code block을 실행 요청으로 보내고, sandbox는 실행 로그와 테스트 결과를 저장합니다.',
+            contract:
+                '학습 과제의 runnable code block을 실행 요청으로 보내고, sandbox는 실행 로그와 테스트 결과를 저장합니다.',
           ),
           _CommunicationRow(
             from: 'sandbox-svc',
             to: 'ai-svc',
             protocol: 'Event or worker call',
-            contract: 'SandboxRunSubmittedEvent 이후 AI Review Worker가 코드, 테스트 실패, stdout/stderr를 리뷰 입력으로 전달합니다.',
+            contract:
+                'SandboxRunSubmittedEvent 이후 AI Review Worker가 코드, 테스트 실패, stdout/stderr를 리뷰 입력으로 전달합니다.',
           ),
           _CommunicationRow(
             from: '도메인 서비스',
             to: 'Kafka',
             protocol: 'Transactional Outbox',
-            contract: '비즈니스 데이터와 outbox_events를 같은 PostgreSQL 트랜잭션에 저장한 뒤 relay가 Kafka로 발행합니다.',
+            contract:
+                '비즈니스 데이터와 outbox_events를 같은 PostgreSQL 트랜잭션에 저장한 뒤 relay가 Kafka로 발행합니다.',
           ),
         ],
       ),
@@ -1656,13 +1985,20 @@ class _CommunicationRow extends StatelessWidget {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               _FlowChip(text: from, color: const Color(0xFF2D6CDF)),
-              const Icon(Icons.arrow_forward, size: 18, color: Color(0xFF697772)),
+              const Icon(
+                Icons.arrow_forward,
+                size: 18,
+                color: Color(0xFF697772),
+              ),
               _FlowChip(text: to, color: const Color(0xFF1F6F68)),
               _FlowChip(text: protocol, color: const Color(0xFFB7791F)),
             ],
           ),
           const SizedBox(height: 8),
-          Text(contract, style: const TextStyle(height: 1.4, color: Color(0xFF4D5C57))),
+          Text(
+            contract,
+            style: const TextStyle(height: 1.4, color: Color(0xFF4D5C57)),
+          ),
         ],
       ),
     );
@@ -1684,7 +2020,10 @@ class _FlowChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
-      child: Text(text, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
+      child: Text(
+        text,
+        style: TextStyle(color: color, fontWeight: FontWeight.w800),
+      ),
     );
   }
 }
@@ -1703,32 +2042,41 @@ class _DataDomainOwnership extends StatelessWidget {
           _DataDomainCard(
             domain: 'Platform',
             owner: 'platform-svc',
-            tables: 'users, user_profiles, user_oauth_identities, github_profiles',
-            communication: 'Gateway 라우트로 사용자/인증 요청 처리. 온보딩 상태는 learning 이벤트를 소비해 갱신.',
+            tables:
+                'users, user_profiles, user_oauth_identities, github_profiles',
+            communication:
+                'Gateway 라우트로 사용자/인증 요청 처리. 온보딩 상태는 learning 이벤트를 소비해 갱신.',
           ),
           _DataDomainCard(
             domain: 'Learning',
             owner: 'learning-svc',
-            tables: 'assessments, learning_paths, path_milestones, path_weekly_tasks, contents, content_embeddings',
-            communication: '진단/경로 API를 제공하고 ai-svc에 생성/임베딩 요청. 완료 이벤트를 Outbox로 발행.',
+            tables:
+                'assessments, learning_paths, path_milestones, path_weekly_tasks, contents, content_embeddings',
+            communication:
+                '진단/경로 API를 제공하고 ai-svc에 생성/임베딩 요청. 완료 이벤트를 Outbox로 발행.',
           ),
           _DataDomainCard(
             domain: 'AI',
             owner: 'ai-svc',
             tables: 'ai_code_reviews, ai_mentor_sessions, ai_cost_logs',
-            communication: '현재 Build B는 무상태 Ollama Gateway. 리뷰/멘토/비용 로그는 후속 빌드에서 저장 도메인으로 확장.',
+            communication:
+                '현재 Build B는 무상태 Ollama Gateway. 리뷰/멘토/비용 로그는 후속 빌드에서 저장 도메인으로 확장.',
           ),
           _DataDomainCard(
             domain: 'Sandbox',
             owner: 'sandbox-svc',
-            tables: 'sandbox_sessions, sandbox_test_results, sandbox_quotas, sandbox_abuse_logs',
-            communication: '실습 코드를 격리 실행하고 결과를 저장. 리뷰 필요 시 SandboxRunSubmittedEvent를 발행.',
+            tables:
+                'sandbox_sessions, sandbox_test_results, sandbox_quotas, sandbox_abuse_logs',
+            communication:
+                '실습 코드를 격리 실행하고 결과를 저장. 리뷰 필요 시 SandboxRunSubmittedEvent를 발행.',
           ),
           _DataDomainCard(
             domain: 'Community',
             owner: 'community-svc',
-            tables: 'community_posts, answers, votes, reputation, badges, learning_context_snapshots',
-            communication: '질문/답변/평판을 소유. 학습 맥락은 이벤트 또는 worker로 learning 데이터의 스냅샷만 참조.',
+            tables:
+                'community_posts, answers, votes, reputation, badges, learning_context_snapshots',
+            communication:
+                '질문/답변/평판을 소유. 학습 맥락은 이벤트 또는 worker로 learning 데이터의 스냅샷만 참조.',
           ),
           _DataDomainCard(
             domain: 'Operations/Event',
@@ -1767,7 +2115,10 @@ class _DataDomainCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(domain, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          Text(
+            domain,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: 8),
           _ResultLine(label: '소유', value: owner),
           _ResultLine(label: '테이블', value: tables),
@@ -1786,8 +2137,16 @@ class _ArchitectureFlow extends StatelessWidget {
     const steps = [
       ('1', '진단 제출', 'Flutter Web이 답변과 목표 트랙을 gateway로 전송합니다.'),
       ('2', '도메인 처리', 'learning-svc가 진단 점수, 약점, 경로 생성 요청을 정규화합니다.'),
-      ('3', 'AI 보조 생성', 'ai-svc가 Ollama chat/embed 계약으로 후보 경로와 콘텐츠 유사도를 계산합니다.'),
-      ('4', '학습 실행', 'sandbox-svc가 실습 실행과 코드리뷰 입력을 만들고 결과를 learning-svc에 돌려줍니다.'),
+      (
+        '3',
+        'AI 보조 생성',
+        'ai-svc가 Ollama chat/embed 계약으로 후보 경로와 콘텐츠 유사도를 계산합니다.',
+      ),
+      (
+        '4',
+        '학습 실행',
+        'sandbox-svc가 실습 실행과 코드리뷰 입력을 만들고 결과를 learning-svc에 돌려줍니다.',
+      ),
       ('5', '상태 전파', 'Kafka/Outbox가 진단 완료, 경로 생성, 리뷰 완료 이벤트를 안전하게 전달합니다.'),
     ];
     return _Panel(
@@ -1798,7 +2157,11 @@ class _ArchitectureFlow extends StatelessWidget {
           for (final step in steps)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _PathStep(week: int.parse(step.$1), title: step.$2, body: step.$3),
+              child: _PathStep(
+                week: int.parse(step.$1),
+                title: step.$2,
+                body: step.$3,
+              ),
             ),
         ],
       ),
@@ -1814,19 +2177,47 @@ class _ServiceResponsibilityGrid extends StatelessWidget {
     return _ResponsiveGrid(
       minItemWidth: 280,
       children: const [
-        _ServiceCard(name: 'devpath-gateway', role: '인증, CORS, 라우팅, API 진입점', data: '토큰 검증, 요청 상관관계 ID'),
-        _ServiceCard(name: 'platform-svc', role: '회원, 프로필, 온보딩 상태', data: 'users, profiles, onboarding_state'),
-        _ServiceCard(name: 'learning-svc', role: '진단, 학습경로, 콘텐츠 매칭', data: 'diagnoses, learning_paths, progress'),
-        _ServiceCard(name: 'ai-svc', role: 'Ollama 게이트웨이, 임베딩, 구조화 생성', data: '상태 없음, 외부 AI 호출 계약만 소유'),
-        _ServiceCard(name: 'sandbox-svc', role: '코드 실행, 테스트 결과, 리뷰 입력 생성', data: 'submissions, run_logs, review_targets'),
-        _ServiceCard(name: 'community-svc', role: '질문, 회고, 학습 공유', data: 'posts, comments, reactions'),
+        _ServiceCard(
+          name: 'devpath-gateway',
+          role: '인증, CORS, 라우팅, API 진입점',
+          data: '토큰 검증, 요청 상관관계 ID',
+        ),
+        _ServiceCard(
+          name: 'platform-svc',
+          role: '회원, 프로필, 온보딩 상태',
+          data: 'users, profiles, onboarding_state',
+        ),
+        _ServiceCard(
+          name: 'learning-svc',
+          role: '진단, 학습경로, 콘텐츠 매칭',
+          data: 'diagnoses, learning_paths, progress',
+        ),
+        _ServiceCard(
+          name: 'ai-svc',
+          role: 'Ollama 게이트웨이, 임베딩, 구조화 생성',
+          data: '상태 없음, 외부 AI 호출 계약만 소유',
+        ),
+        _ServiceCard(
+          name: 'sandbox-svc',
+          role: '코드 실행, 테스트 결과, 리뷰 입력 생성',
+          data: 'submissions, run_logs, review_targets',
+        ),
+        _ServiceCard(
+          name: 'community-svc',
+          role: '질문, 회고, 학습 공유',
+          data: 'posts, comments, reactions',
+        ),
       ],
     );
   }
 }
 
 class _ServiceCard extends StatelessWidget {
-  const _ServiceCard({required this.name, required this.role, required this.data});
+  const _ServiceCard({
+    required this.name,
+    required this.role,
+    required this.data,
+  });
 
   final String name;
   final String role;
@@ -1844,11 +2235,17 @@ class _ServiceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
+          Text(
+            name,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: 8),
           Text(role, style: const TextStyle(height: 1.4)),
           const SizedBox(height: 10),
-          Text('소유 데이터: $data', style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
+          Text(
+            '소유 데이터: $data',
+            style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57)),
+          ),
         ],
       ),
     );
@@ -1856,7 +2253,11 @@ class _ServiceCard extends StatelessWidget {
 }
 
 class _ArchitectureContract extends StatelessWidget {
-  const _ArchitectureContract({required this.title, required this.icon, required this.lines});
+  const _ArchitectureContract({
+    required this.title,
+    required this.icon,
+    required this.lines,
+  });
 
   final String title;
   final IconData icon;
@@ -1876,9 +2277,15 @@ class _ArchitectureContract extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.check_circle_outline, size: 18, color: Color(0xFF1F6F68)),
+                  const Icon(
+                    Icons.check_circle_outline,
+                    size: 18,
+                    color: Color(0xFF1F6F68),
+                  ),
                   const SizedBox(width: 8),
-                  Expanded(child: Text(line, style: const TextStyle(height: 1.35))),
+                  Expanded(
+                    child: Text(line, style: const TextStyle(height: 1.35)),
+                  ),
                 ],
               ),
             ),
@@ -1889,7 +2296,11 @@ class _ArchitectureContract extends StatelessWidget {
 }
 
 class _ArchitectureRow extends StatelessWidget {
-  const _ArchitectureRow({required this.title, required this.chips, required this.color});
+  const _ArchitectureRow({
+    required this.title,
+    required this.chips,
+    required this.color,
+  });
 
   final String title;
   final List<String> chips;
@@ -1902,7 +2313,10 @@ class _ArchitectureRow extends StatelessWidget {
       children: [
         SizedBox(
           width: 120,
-          child: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.w900)),
+          child: Text(
+            title,
+            style: TextStyle(color: color, fontWeight: FontWeight.w900),
+          ),
         ),
         Expanded(
           child: Wrap(
@@ -1945,19 +2359,36 @@ class _TechCard extends StatelessWidget {
               children: [
                 Icon(item.icon, color: item.color),
                 const SizedBox(width: 10),
-                Expanded(child: Text(item.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900))),
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
-            Text('종류: ${item.kind}', style: const TextStyle(fontWeight: FontWeight.w700)),
+            Text(
+              '종류: ${item.kind}',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
             const SizedBox(height: 8),
             Text('채택 이유: ${item.reason}', style: const TextStyle(height: 1.35)),
             const SizedBox(height: 8),
             Text('개념: ${item.concept}', style: const TextStyle(height: 1.35)),
             const SizedBox(height: 8),
-            Text('사용 방법: ${item.usage}', style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
+            Text(
+              '사용 방법: ${item.usage}',
+              style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57)),
+            ),
             const SizedBox(height: 8),
-            Text('운영 포인트: ${item.operation}', style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
+            Text(
+              '운영 포인트: ${item.operation}',
+              style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57)),
+            ),
           ],
         ),
       ),
@@ -2058,7 +2489,8 @@ const demoProfiles = [
     ],
     code: 'consumer.onMessage(event);\nnotificationRepository.save(entity);',
     reviewTitle: '중복 소비에 대한 방어가 없습니다',
-    reviewBody: '이벤트 소비자는 같은 메시지가 두 번 와도 결과가 같아야 합니다. dedup key나 조건부 update를 추가하세요.',
+    reviewBody:
+        '이벤트 소비자는 같은 메시지가 두 번 와도 결과가 같아야 합니다. dedup key나 조건부 update를 추가하세요.',
   ),
   DemoProfile(
     name: '서연',
@@ -2079,7 +2511,8 @@ const demoProfiles = [
       (2, 'LLM 게이트웨이 계약', 'stream:false, 구조화 출력, 오류 매핑을 고정합니다.'),
       (3, '검색 품질 평가', 'BM25와 vector 후보를 비교하고 fallback 기준을 만듭니다.'),
     ],
-    code: 'final response = await llm.generate(prompt);\nreturn jsonDecode(response);',
+    code:
+        'final response = await llm.generate(prompt);\nreturn jsonDecode(response);',
     reviewTitle: 'LLM 응답 계약 검증이 부족합니다',
     reviewBody: '구조화 출력은 schema 검증, 재시도, 사용자 노출 오류를 분리해야 운영에서 흔들리지 않습니다.',
   ),
@@ -2094,15 +2527,28 @@ List<(int, String, String)> _generatedWeeks(
   final area = weakAreas.isEmpty ? profile.priority : weakAreas.first;
   final reviewWeek = totalWeeks <= 8 ? 6 : 8;
   return [
-    (1, '$area 기준 진단 리포트 정리', '${profile.name}의 약점 점수를 기준으로 불필요한 복습을 줄이고 시작점을 고정합니다.'),
+    (
+      1,
+      '$area 기준 진단 리포트 정리',
+      '${profile.name}의 약점 점수를 기준으로 불필요한 복습을 줄이고 시작점을 고정합니다.',
+    ),
     (2, '$goal 핵심 API 과제', '요구사항, 테스트, 구현, 리뷰를 한 번의 짧은 루프로 묶습니다.'),
-    (reviewWeek, '샌드박스 실습과 AI 리뷰', '실행 결과, 실패 로그, 코드리뷰를 합쳐 다음 보강 항목을 자동 추출합니다.'),
+    (
+      reviewWeek,
+      '샌드박스 실습과 AI 리뷰',
+      '실행 결과, 실패 로그, 코드리뷰를 합쳐 다음 보강 항목을 자동 추출합니다.',
+    ),
     (totalWeeks, '포트폴리오형 최종 점검', '경로 완료 기준을 체크리스트로 확인하고 다음 트랙 후보를 추천합니다.'),
   ];
 }
 
 class CodeSample {
-  const CodeSample({required this.code, required this.severity, required this.review, required this.fix});
+  const CodeSample({
+    required this.code,
+    required this.severity,
+    required this.review,
+    required this.fix,
+  });
 
   final String code;
   final String severity;
@@ -2112,19 +2558,24 @@ class CodeSample {
 
 const codeSamples = {
   'null 응답': CodeSample(
-    code: '@GetMapping("/users/{id}")\nUserResponse find(@PathVariable Long id) {\n  User user = repo.findById(id).orElse(null);\n  return mapper.toResponse(user);\n}',
+    code:
+        '@GetMapping("/users/{id}")\nUserResponse find(@PathVariable Long id) {\n  User user = repo.findById(id).orElse(null);\n  return mapper.toResponse(user);\n}',
     severity: '높음 · 404/500 경계 불명확',
-    review: '존재하지 않는 사용자를 null로 흘려보내면 mapper에서 NPE가 발생하거나 모호한 200 응답이 될 수 있습니다.',
-    fix: 'orElseThrow로 NotFoundException을 던지고 ControllerAdvice에서 404 Problem 응답으로 매핑하세요.',
+    review:
+        '존재하지 않는 사용자를 null로 흘려보내면 mapper에서 NPE가 발생하거나 모호한 200 응답이 될 수 있습니다.',
+    fix:
+        'orElseThrow로 NotFoundException을 던지고 ControllerAdvice에서 404 Problem 응답으로 매핑하세요.',
   ),
   '중복 이벤트': CodeSample(
-    code: '@KafkaListener(topics = "path.generated")\nvoid consume(PathEvent event) {\n  notificationRepository.save(toEntity(event));\n}',
+    code:
+        '@KafkaListener(topics = "path.generated")\nvoid consume(PathEvent event) {\n  notificationRepository.save(toEntity(event));\n}',
     severity: '중간 · 멱등성 누락',
     review: 'Kafka consumer는 같은 메시지를 다시 받을 수 있으므로 단순 insert는 중복 알림을 만들 수 있습니다.',
     fix: 'eventId unique key를 저장하고 이미 처리된 이벤트는 skip하도록 조건부 저장을 추가하세요.',
   ),
   'LLM JSON': CodeSample(
-    code: 'String body = ollama.chat(prompt);\nLearningPath path = objectMapper.readValue(body, LearningPath.class);\nreturn path;',
+    code:
+        'String body = ollama.chat(prompt);\nLearningPath path = objectMapper.readValue(body, LearningPath.class);\nreturn path;',
     severity: '높음 · 구조화 출력 검증 부족',
     review: 'LLM 응답은 JSON처럼 보여도 누락 필드, 문자열 내부 JSON, 설명 문장이 섞일 수 있습니다.',
     fix: 'format schema, 2단계 parse, 필수 필드 검증, 502 오류 매핑을 게이트웨이 계층에 고정하세요.',
@@ -2147,19 +2598,64 @@ class SearchResult {
 
 const searchResults = {
   '트랜잭션': [
-    SearchResult(title: 'JPA 트랜잭션 경계 실습', reason: '키워드가 직접 일치하고 서비스 계층 경계 설명이 포함됩니다.', keywordScore: 0.89, hybridScore: 0.91),
-    SearchResult(title: 'Outbox 패턴과 원자성', reason: '임베딩 검색에서 “DB 변경과 이벤트 발행” 문맥이 가깝게 잡힙니다.', keywordScore: 0.62, hybridScore: 0.86),
-    SearchResult(title: '읽기 전용 트랜잭션 튜닝', reason: '성능 관점의 보충 자료로 후순위 추천됩니다.', keywordScore: 0.71, hybridScore: 0.74),
+    SearchResult(
+      title: 'JPA 트랜잭션 경계 실습',
+      reason: '키워드가 직접 일치하고 서비스 계층 경계 설명이 포함됩니다.',
+      keywordScore: 0.89,
+      hybridScore: 0.91,
+    ),
+    SearchResult(
+      title: 'Outbox 패턴과 원자성',
+      reason: '임베딩 검색에서 “DB 변경과 이벤트 발행” 문맥이 가깝게 잡힙니다.',
+      keywordScore: 0.62,
+      hybridScore: 0.86,
+    ),
+    SearchResult(
+      title: '읽기 전용 트랜잭션 튜닝',
+      reason: '성능 관점의 보충 자료로 후순위 추천됩니다.',
+      keywordScore: 0.71,
+      hybridScore: 0.74,
+    ),
   ],
   'Kafka': [
-    SearchResult(title: '멱등 Consumer 설계', reason: '중복 수신, dedup key, 재시도 전략을 함께 다룹니다.', keywordScore: 0.86, hybridScore: 0.9),
-    SearchResult(title: 'DLQ 운영 기준', reason: '장애 복구 시나리오와 poison payload 처리 기준이 연결됩니다.', keywordScore: 0.72, hybridScore: 0.84),
-    SearchResult(title: 'Transactional Outbox', reason: '이벤트 발행 신뢰성을 확보하는 선행 개념입니다.', keywordScore: 0.54, hybridScore: 0.8),
+    SearchResult(
+      title: '멱등 Consumer 설계',
+      reason: '중복 수신, dedup key, 재시도 전략을 함께 다룹니다.',
+      keywordScore: 0.86,
+      hybridScore: 0.9,
+    ),
+    SearchResult(
+      title: 'DLQ 운영 기준',
+      reason: '장애 복구 시나리오와 poison payload 처리 기준이 연결됩니다.',
+      keywordScore: 0.72,
+      hybridScore: 0.84,
+    ),
+    SearchResult(
+      title: 'Transactional Outbox',
+      reason: '이벤트 발행 신뢰성을 확보하는 선행 개념입니다.',
+      keywordScore: 0.54,
+      hybridScore: 0.8,
+    ),
   ],
   'LLM': [
-    SearchResult(title: 'Ollama 구조화 출력 계약', reason: 'stream:false, format schema, 오류 매핑을 직접 설명합니다.', keywordScore: 0.91, hybridScore: 0.93),
-    SearchResult(title: '임베딩 기반 콘텐츠 추천', reason: 'LLM 생성 전 후보 검색 품질을 높이는 흐름입니다.', keywordScore: 0.48, hybridScore: 0.81),
-    SearchResult(title: 'AI 응답 검증 테스트', reason: 'malformed JSON과 timeout을 MockWebServer로 검증합니다.', keywordScore: 0.66, hybridScore: 0.79),
+    SearchResult(
+      title: 'Ollama 구조화 출력 계약',
+      reason: 'stream:false, format schema, 오류 매핑을 직접 설명합니다.',
+      keywordScore: 0.91,
+      hybridScore: 0.93,
+    ),
+    SearchResult(
+      title: '임베딩 기반 콘텐츠 추천',
+      reason: 'LLM 생성 전 후보 검색 품질을 높이는 흐름입니다.',
+      keywordScore: 0.48,
+      hybridScore: 0.81,
+    ),
+    SearchResult(
+      title: 'AI 응답 검증 테스트',
+      reason: 'malformed JSON과 timeout을 MockWebServer로 검증합니다.',
+      keywordScore: 0.66,
+      hybridScore: 0.79,
+    ),
   ],
 };
 
@@ -2192,7 +2688,8 @@ const techItems = [
     reason: '웹, 관리자, 모바일 경험을 같은 UI 철학으로 맞추기 쉽습니다.',
     concept: '위젯 트리와 선언형 상태로 화면을 구성합니다.',
     usage: '프로토타입 쇼케이스와 실제 web/mobile 앱의 UX 검증에 사용합니다.',
-    operation: 'GitHub Pages 배포 시 `--base-href /prototype/`를 고정하고, 반응형 폭에서 텍스트 잘림을 테스트합니다.',
+    operation:
+        'GitHub Pages 배포 시 `--base-href /prototype/`를 고정하고, 반응형 폭에서 텍스트 잘림을 테스트합니다.',
     icon: Icons.web_asset_outlined,
     color: Color(0xFF2D6CDF),
   ),
@@ -2252,7 +2749,8 @@ const techItems = [
     reason: '외부 API 키 없이 생성/임베딩 계약을 빠르게 검증합니다.',
     concept: '로컬 HTTP API로 `/api/chat`, `/api/embed`를 제공합니다.',
     usage: 'ai-svc가 학습경로 JSON 생성과 임베딩 요청을 중계합니다.',
-    operation: '`qwen2.5:7b`, `nomic-embed-text`, `stream:false`, schema format, timeout 매핑을 테스트로 고정합니다.',
+    operation:
+        '`qwen2.5:7b`, `nomic-embed-text`, `stream:false`, schema format, timeout 매핑을 테스트로 고정합니다.',
     icon: Icons.smart_toy_outlined,
     color: Color(0xFF6F5AA8),
   ),
@@ -2261,7 +2759,8 @@ const techItems = [
     kind: '계약 테스트',
     reason: 'CI에서 실제 Ollama를 호출하지 않고도 HTTP body와 오류 매핑을 검증합니다.',
     concept: '테스트 안에서 가짜 HTTP 서버를 띄워 요청/응답 계약을 검사합니다.',
-    usage: '`/api/chat`의 `stream:false`, `format` 포함 여부와 `/api/embed` 입력 배열, 768차원을 확인합니다.',
+    usage:
+        '`/api/chat`의 `stream:false`, `format` 포함 여부와 `/api/embed` 입력 배열, 768차원을 확인합니다.',
     operation: 'timeout, malformed JSON, upstream 5xx를 반드시 실패 케이스로 유지합니다.',
     icon: Icons.rule_folder_outlined,
     color: Color(0xFF2D6CDF),
@@ -2282,7 +2781,8 @@ const techItems = [
     reason: '정적 Flutter Web 산출물을 별도 서버 없이 공개할 수 있습니다.',
     concept: 'main push 시 build/web artifact를 Pages에 배포합니다.',
     usage: '`/prototype/` base href로 공개 프로토타입을 배포합니다.',
-    operation: 'Pages source는 GitHub Actions로 설정하고, artifact 업로드와 deploy-pages 권한을 확인합니다.',
+    operation:
+        'Pages source는 GitHub Actions로 설정하고, artifact 업로드와 deploy-pages 권한을 확인합니다.',
     icon: Icons.rocket_launch_outlined,
     color: Color(0xFF3D7C47),
   ),
