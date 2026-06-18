@@ -716,11 +716,18 @@ class _DemoPageNavigation extends StatelessWidget {
         runSpacing: 10,
         children: [
           for (final page in DemoPage.values)
-            ChoiceChip(
-              avatar: Icon(page.icon, size: 18),
-              label: Text(page.label),
+            Semantics(
+              button: true,
               selected: page == selected,
-              onSelected: (_) => onChanged(page),
+              label: '${page.label} 열기',
+              child: ExcludeSemantics(
+                child: ChoiceChip(
+                  avatar: Icon(page.icon, size: 18),
+                  label: Text(page.label),
+                  selected: page == selected,
+                  onSelected: (_) => onChanged(page),
+                ),
+              ),
             ),
         ],
       ),
