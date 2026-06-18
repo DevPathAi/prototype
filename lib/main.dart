@@ -37,6 +37,17 @@ enum PrototypeSection {
   final IconData icon;
 }
 
+enum DemoPage {
+  diagnosis('진단 페이지', Icons.fact_check_outlined),
+  path('학습경로 페이지', Icons.route_outlined),
+  sandbox('샌드박스 페이지', Icons.terminal_outlined),
+  search('AI 검색 페이지', Icons.travel_explore_outlined);
+
+  const DemoPage(this.label, this.icon);
+  final String label;
+  final IconData icon;
+}
+
 class PrototypeHomePage extends StatefulWidget {
   const PrototypeHomePage({super.key});
 
@@ -223,6 +234,7 @@ class DemoSection extends StatefulWidget {
 }
 
 class _DemoSectionState extends State<DemoSection> {
+  DemoPage _page = DemoPage.diagnosis;
   DemoProfile _selected = demoProfiles.first;
   String _goal = '백엔드 취업';
   double _weeklyHours = 8;
@@ -239,62 +251,81 @@ class _DemoSectionState extends State<DemoSection> {
       children: [
         const _SectionHeader(
           eyebrow: '데모',
-          title: '서비스 핵심 기능을 직접 조작하는 인터랙티브 시뮬레이터',
+          title: '기능별 독립 페이지로 체험하는 DevPath AI 서비스 화면',
           body:
-              '실제 백엔드 API 연동 전, 진단부터 경로 생성, 샌드박스 리뷰, AI 검색까지 사용자가 직접 값을 바꾸며 결과 변화를 확인합니다.',
+              '각 데모는 실제 서비스 화면에 가까운 페이지 단위로 구성했습니다. 진단, 학습경로 생성, 샌드박스 코드리뷰, AI 검색을 각각 독립된 시뮬레이터로 조작할 수 있습니다.',
         ),
         const SizedBox(height: 18),
-        _DemoSimulatorFrame(
-          title: '1. 진단 시뮬레이터',
-          icon: Icons.fact_check_outlined,
-          child: _DiagnosisSimulator(
-            selected: _selected,
-            onProfileChanged: (profile) => setState(() {
-              _selected = profile;
-              _reviewRequested = false;
-            }),
-          ),
-        ),
+        _DemoPageNavigation(selected: _page, onChanged: (page) => setState(() => _page = page)),
         const SizedBox(height: 18),
-        _DemoSimulatorFrame(
-          title: '2. 학습경로 생성 시뮬레이터',
-          icon: Icons.route_outlined,
-          child: _PathGeneratorSimulator(
-            profile: _selected,
-            goal: _goal,
-            weeklyHours: _weeklyHours,
-            weakAreas: _weakAreas,
-            onGoalChanged: (goal) => setState(() => _goal = goal),
-            onHoursChanged: (hours) => setState(() => _weeklyHours = hours),
-            onAreaToggled: (area) => setState(() {
-              if (_weakAreas.contains(area)) {
-                _weakAreas.remove(area);
-              } else {
-                _weakAreas.add(area);
-              }
-            }),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          child: KeyedSubtree(
+            key: ValueKey(_page),
+            child: switch (_page) {
+              DemoPage.diagnosis => _ServiceDemoPage(
+                  title: '진단 페이지',
+                  subtitle: '온보딩 답변과 역량 점수를 바탕으로 현재 출발점을 판정합니다.',
+                  icon: Icons.fact_check_outlined,
+                  status: '시뮬레이션 실행 중',
+                  child: _DiagnosisSimulator(
+                    selected: _selected,
+                    onProfileChanged: (profile) => setState(() {
+                      _selected = profile;
+                      _reviewRequested = false;
+                    }),
+                  ),
+                ),
+              DemoPage.path => _ServiceDemoPage(
+                  title: '학습경로 페이지',
+                  subtitle: '목표, 주간 학습 시간, 약점 영역을 바꿔 추천 경로를 생성합니다.',
+                  icon: Icons.route_outlined,
+                  status: '경로 생성 준비',
+                  child: _PathGeneratorSimulator(
+                    profile: _selected,
+                    goal: _goal,
+                    weeklyHours: _weeklyHours,
+                    weakAreas: _weakAreas,
+                    onGoalChanged: (goal) => setState(() => _goal = goal),
+                    onHoursChanged: (hours) => setState(() => _weeklyHours = hours),
+                    onAreaToggled: (area) => setState(() {
+                      if (_weakAreas.contains(area)) {
+                        _weakAreas.remove(area);
+                      } else {
+                        _weakAreas.add(area);
+                      }
+                    }),
+                  ),
+                ),
+              DemoPage.sandbox => _ServiceDemoPage(
+                  title: '샌드박스 페이지',
+                  subtitle: '실습 코드 샘플을 실행 대상으로 선택하고 AI 코드리뷰 결과를 확인합니다.',
+                  icon: Icons.terminal_outlined,
+                  status: _reviewRequested ? 'AI 리뷰 완료' : '리뷰 대기',
+                  child: _SandboxReviewSimulator(
+                    scenario: _codeScenario,
+                    reviewRequested: _reviewRequested,
+                    onScenarioChanged: (scenario) => setState(() {
+                      _codeScenario = scenario;
+                      _reviewRequested = false;
+                    }),
+                    onReviewRequested: () => setState(() => _reviewRequested = true),
+                  ),
+                ),
+              DemoPage.search => _ServiceDemoPage(
+                  title: 'AI 검색 페이지',
+                  subtitle: '키워드 검색과 pgvector 유사도 후보를 섞어 추천 품질 변화를 비교합니다.',
+                  icon: Icons.travel_explore_outlined,
+                  status: _includeVector ? 'Hybrid 검색' : 'Keyword 검색',
+                  child: _AiSearchSimulator(
+                    query: _searchQuery,
+                    includeVector: _includeVector,
+                    onQueryChanged: (query) => setState(() => _searchQuery = query),
+                    onVectorChanged: (value) => setState(() => _includeVector = value),
+                  ),
+                ),
+            },
           ),
-        ),
-        const SizedBox(height: 24),
-        _ResponsiveGrid(
-          minItemWidth: 360,
-          children: [
-            _SandboxReviewSimulator(
-              scenario: _codeScenario,
-              reviewRequested: _reviewRequested,
-              onScenarioChanged: (scenario) => setState(() {
-                _codeScenario = scenario;
-                _reviewRequested = false;
-              }),
-              onReviewRequested: () => setState(() => _reviewRequested = true),
-            ),
-            _AiSearchSimulator(
-              query: _searchQuery,
-              includeVector: _includeVector,
-              onQueryChanged: (query) => setState(() => _searchQuery = query),
-              onVectorChanged: (value) => setState(() => _includeVector = value),
-            ),
-          ],
         ),
       ],
     );
@@ -571,18 +602,58 @@ class _MetricTile extends StatelessWidget {
   }
 }
 
-class _DemoSimulatorFrame extends StatelessWidget {
-  const _DemoSimulatorFrame({required this.title, required this.icon, required this.child});
+class _DemoPageNavigation extends StatelessWidget {
+  const _DemoPageNavigation({required this.selected, required this.onChanged});
+
+  final DemoPage selected;
+  final ValueChanged<DemoPage> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD9DED8)),
+      ),
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: [
+          for (final page in DemoPage.values)
+            ChoiceChip(
+              avatar: Icon(page.icon, size: 18),
+              label: Text(page.label),
+              selected: page == selected,
+              onSelected: (_) => onChanged(page),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ServiceDemoPage extends StatelessWidget {
+  const _ServiceDemoPage({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.status,
+    required this.child,
+  });
 
   final String title;
+  final String subtitle;
   final IconData icon;
+  final String status;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
@@ -591,17 +662,81 @@ class _DemoSimulatorFrame extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon, color: const Color(0xFF1F6F68)),
-              const SizedBox(width: 10),
-              Expanded(child: Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900))),
-            ],
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: const BoxDecoration(
+              color: Color(0xFFE8EEE8),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1F6F68),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(icon, color: Colors.white),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900)),
+                      const SizedBox(height: 4),
+                      Text(subtitle, style: const TextStyle(height: 1.35, color: Color(0xFF4D5C57))),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Chip(
+                  label: Text(status),
+                  side: const BorderSide(color: Color(0xFF1F6F68)),
+                  backgroundColor: Colors.white,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          child,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: const [
+                _StatusPill(label: 'API', value: 'Mock'),
+                _StatusPill(label: '저장', value: '로컬 상태'),
+                _StatusPill(label: '모드', value: '시뮬레이터'),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(18),
+            child: child,
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _StatusPill extends StatelessWidget {
+  const _StatusPill({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8F3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD9DED8)),
+      ),
+      child: Text('$label: $value', style: const TextStyle(fontWeight: FontWeight.w700)),
     );
   }
 }
@@ -617,26 +752,75 @@ class _DiagnosisSimulator extends StatelessWidget {
     return _ResponsiveGrid(
       minItemWidth: 300,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('학습자 페르소나를 선택하면 역량 점수와 추천 흐름이 즉시 바뀝니다.',
-                style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
-            const SizedBox(height: 14),
-            for (final profile in demoProfiles)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _SelectableDemoCard(
-                  profile: profile,
-                  selected: profile == selected,
-                  onTap: () => onProfileChanged(profile),
+        _Panel(
+          title: '학습자 선택',
+          icon: Icons.people_alt_outlined,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('실제 서비스의 진단 시작 화면처럼 학습자 상태를 선택해 결과 변화를 확인합니다.',
+                  style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+              const SizedBox(height: 14),
+              for (final profile in demoProfiles)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _SelectableDemoCard(
+                    profile: profile,
+                    selected: profile == selected,
+                    onTap: () => onProfileChanged(profile),
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
+        _OnboardingAnswers(profile: selected),
         _SkillRadar(profile: selected),
         _DiagnosisResult(profile: selected),
       ],
+    );
+  }
+}
+
+class _OnboardingAnswers extends StatelessWidget {
+  const _OnboardingAnswers({required this.profile});
+
+  final DemoProfile profile;
+
+  @override
+  Widget build(BuildContext context) {
+    final answers = [
+      ('목표', profile.track),
+      ('최근 경험', profile.level),
+      ('가장 막히는 지점', profile.priority),
+      ('선호 피드백', '짧은 실습 → 즉시 리뷰 → 다음 과제 추천'),
+    ];
+    return _Panel(
+      title: '진단 문항 응답',
+      icon: Icons.assignment_outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final answer in answers)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F8F3),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFD9DED8)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(answer.$1, style: const TextStyle(color: Color(0xFF1F6F68), fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 4),
+                  Text(answer.$2, style: const TextStyle(height: 1.35)),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -795,7 +979,57 @@ class _PathGeneratorSimulator extends StatelessWidget {
             ],
           ),
         ),
+        _PathExecutionBoard(profile: profile, goal: goal, totalWeeks: totalWeeks),
       ],
+    );
+  }
+}
+
+class _PathExecutionBoard extends StatelessWidget {
+  const _PathExecutionBoard({required this.profile, required this.goal, required this.totalWeeks});
+
+  final DemoProfile profile;
+  final String goal;
+  final int totalWeeks;
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      title: '학습 실행 보드',
+      icon: Icons.dashboard_customize_outlined,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _ResultLine(label: '현재 주차', value: '1 / $totalWeeks주'),
+          _ResultLine(label: '이번 목표', value: '$goal 첫 과제 제출'),
+          _ResultLine(label: '연동 기능', value: '샌드박스 실행, AI 리뷰, 다음 과제 자동 추천'),
+          const SizedBox(height: 12),
+          for (final task in [
+            ('개념 카드 3개 확인', true),
+            ('API 과제 요구사항 읽기', true),
+            ('샌드박스 코드 제출', false),
+            ('AI 리뷰 반영 후 재제출', false),
+          ])
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Icon(
+                    task.$2 ? Icons.check_circle : Icons.radio_button_unchecked,
+                    color: task.$2 ? const Color(0xFF1F6F68) : const Color(0xFF697772),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text(task.$1)),
+                ],
+              ),
+            ),
+          const SizedBox(height: 8),
+          Text(
+            '${profile.name}에게는 완료 여부보다 막힌 지점의 종류를 다음 진단 데이터로 남기는 흐름이 중요합니다.',
+            style: const TextStyle(height: 1.45, color: Color(0xFF4D5C57)),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -816,50 +1050,97 @@ class _SandboxReviewSimulator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sample = codeSamples[scenario]!;
-    return _Panel(
-      title: '3. 샌드박스 코드리뷰 시뮬레이터',
-      icon: Icons.terminal_outlined,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+    return _ResponsiveGrid(
+      minItemWidth: 340,
+      children: [
+        _Panel(
+          title: '실습 선택',
+          icon: Icons.folder_open_outlined,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final name in codeSamples.keys)
-                ChoiceChip(
-                  label: Text(name),
-                  selected: scenario == name,
-                  onSelected: (_) => onScenarioChanged(name),
-                ),
+              const Text('실제 서비스의 샌드박스 목록처럼 리뷰할 과제를 선택합니다.',
+                  style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final name in codeSamples.keys)
+                    ChoiceChip(
+                      label: Text(name),
+                      selected: scenario == name,
+                      onSelected: (_) => onScenarioChanged(name),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _CodeBlock(text: sample.code),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: onReviewRequested,
+                icon: const Icon(Icons.play_arrow_outlined),
+                label: const Text('테스트 실행 및 AI 리뷰'),
+              ),
             ],
           ),
-          const SizedBox(height: 14),
-          _CodeBlock(text: sample.code),
-          const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: onReviewRequested,
-            icon: const Icon(Icons.rate_review_outlined),
-            label: const Text('AI 리뷰 실행'),
+        ),
+        _Panel(
+          title: '실행 콘솔',
+          icon: Icons.bug_report_outlined,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ConsoleLine(status: 'PASS', text: '컴파일 및 기본 테스트 실행'),
+              _ConsoleLine(status: scenario == 'null 응답' ? 'FAIL' : 'WARN', text: sample.severity),
+              _ConsoleLine(status: 'INFO', text: '리뷰 대상 diff와 실행 로그를 AI 리뷰 입력으로 전달'),
+              const SizedBox(height: 14),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                child: reviewRequested
+                    ? Column(
+                        key: ValueKey(scenario),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _ResultLine(label: '심각도', value: sample.severity),
+                          _ResultLine(label: '리뷰 요약', value: sample.review),
+                          _ResultLine(label: '수정 제안', value: sample.fix),
+                        ],
+                      )
+                    : const Text('테스트 실행 및 AI 리뷰 버튼을 누르면 실행 로그와 리뷰 결과가 이 영역에 표시됩니다.',
+                        style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
+              ),
+            ],
           ),
-          const SizedBox(height: 14),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            child: reviewRequested
-                ? Column(
-                    key: ValueKey(scenario),
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _ResultLine(label: '심각도', value: sample.severity),
-                      _ResultLine(label: '리뷰 요약', value: sample.review),
-                      _ResultLine(label: '수정 제안', value: sample.fix),
-                    ],
-                  )
-                : const Text('코드 샘플을 선택한 뒤 AI 리뷰 실행을 눌러 리뷰 결과를 확인하세요.',
-                    style: TextStyle(height: 1.45, color: Color(0xFF4D5C57))),
-          ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ConsoleLine extends StatelessWidget {
+  const _ConsoleLine({required this.status, required this.text});
+
+  final String status;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = switch (status) {
+      'PASS' => const Color(0xFF1F6F68),
+      'FAIL' => const Color(0xFF9D3A3A),
+      'WARN' => const Color(0xFFB7791F),
+      _ => const Color(0xFF2D6CDF),
+    };
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E2523),
+        borderRadius: BorderRadius.circular(8),
       ),
+      child: Text('[$status] $text', style: TextStyle(color: color, fontFamily: 'monospace', height: 1.35)),
     );
   }
 }
@@ -880,52 +1161,105 @@ class _AiSearchSimulator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final results = searchResults[query]!;
-    return _Panel(
-      title: '4. AI 검색/추천 시뮬레이터',
-      icon: Icons.travel_explore_outlined,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final item in searchResults.keys)
-                ChoiceChip(
-                  label: Text(item),
-                  selected: query == item,
-                  onSelected: (_) => onQueryChanged(item),
-                ),
-            ],
-          ),
-          Row(
+    return _ResponsiveGrid(
+      minItemWidth: 340,
+      children: [
+        _Panel(
+          title: '검색 조건',
+          icon: Icons.manage_search_outlined,
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Switch(value: includeVector, onChanged: onVectorChanged),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F8F3),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFD9DED8)),
+                ),
+                child: Row(
                   children: [
-                    Text('pgvector 유사도 후보 포함', style: TextStyle(fontWeight: FontWeight.w800)),
-                    SizedBox(height: 4),
-                    Text(
-                      '키워드 검색 결과와 임베딩 검색 결과를 함께 섞어 추천합니다.',
-                      style: TextStyle(height: 1.35, color: Color(0xFF4D5C57)),
-                    ),
+                    const Icon(Icons.search, color: Color(0xFF1F6F68)),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text('검색어: $query', style: const TextStyle(fontWeight: FontWeight.w800))),
                   ],
                 ),
               ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final item in searchResults.keys)
+                    ChoiceChip(
+                      label: Text(item),
+                      selected: query == item,
+                      onSelected: (_) => onQueryChanged(item),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Switch(value: includeVector, onChanged: onVectorChanged),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('pgvector 유사도 후보 포함', style: TextStyle(fontWeight: FontWeight.w800)),
+                        SizedBox(height: 4),
+                        Text(
+                          '키워드 검색 결과와 임베딩 검색 결과를 함께 섞어 추천합니다.',
+                          style: TextStyle(height: 1.35, color: Color(0xFF4D5C57)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              _ResultLine(label: '검색 방식', value: includeVector ? 'BM25 + vector hybrid ranking' : 'keyword ranking only'),
+              _ResultLine(label: '후보 소스', value: '학습 콘텐츠, 실습 과제, 코드리뷰 패턴'),
             ],
           ),
-          const SizedBox(height: 8),
-          for (final result in results)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _SearchResultTile(result: result, includeVector: includeVector),
-            ),
-        ],
-      ),
+        ),
+        _Panel(
+          title: '추천 결과',
+          icon: Icons.recommend_outlined,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final result in results)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _SearchResultTile(result: result, includeVector: includeVector),
+                ),
+            ],
+          ),
+        ),
+        _Panel(
+          title: '추천 근거',
+          icon: Icons.insights_outlined,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ResultLine(label: '상위 결과', value: results.first.title),
+              _ResultLine(label: '근거', value: results.first.reason),
+              _ResultLine(label: '다음 행동', value: '선택한 콘텐츠를 현재 학습경로의 보강 과제로 추가'),
+              const SizedBox(height: 10),
+              Text(
+                includeVector
+                    ? '유사도 후보를 포함하면 단어가 직접 일치하지 않아도 같은 학습 의도를 가진 콘텐츠가 올라옵니다.'
+                    : '키워드 검색만 사용하면 정확히 일치하는 제목과 태그가 우선되지만, 맥락이 비슷한 자료는 밀릴 수 있습니다.',
+                style: const TextStyle(height: 1.45, color: Color(0xFF4D5C57)),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
