@@ -63,4 +63,19 @@ void main() {
 
     expect(find.text('제품 기능, 개발 속도, 운영 안정성을 기준으로 고른 기술 조합'), findsOneWidget);
   });
+
+  testWidgets('아키텍처에서 통신 흐름과 데이터 도메인 소유권을 확인할 수 있다', (tester) async {
+    await tester.pumpWidget(const DevPathPrototypeApp());
+
+    await tester.tap(find.text('아키텍처'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('구성 검증 결과'), findsOneWidget);
+    expect(find.text('클라이언트·게이트웨이·도메인 서비스 통신'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('데이터 도메인과 소유 서비스'), 300);
+
+    expect(find.text('데이터 도메인과 소유 서비스'), findsOneWidget);
+    expect(find.text('platform-svc'), findsWidgets);
+    expect(find.text('learning-svc'), findsWidgets);
+  });
 }

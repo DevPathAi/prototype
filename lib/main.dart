@@ -342,12 +342,18 @@ class ArchitectureSection extends StatelessWidget {
       children: [
         const _SectionHeader(
           eyebrow: '아키텍처',
-          title: '클라이언트, 게이트웨이, 도메인 서비스, AI/데이터 계층을 분리한 MSA',
+          title: '폴리레포 서비스와 중앙 스키마를 결합한 DevPath AI 아키텍처',
           body:
-              'DevPath AI는 사용자 경험은 Flutter로 빠르게 통합하고, 서버는 gateway/platform/learning/ai/sandbox/community로 책임을 나눕니다. 데이터 계약은 PostgreSQL/Flyway와 API DTO로 고정하고, AI 호출은 ai-svc가 단일 관문으로 흡수합니다.',
+              '구성 자체는 문서의 방향과 맞습니다. 다만 순수 MSA라기보다 독립 배포 서비스와 단일 PostgreSQL/Flyway 스키마를 함께 쓰는 distributed modular monolith에 가깝습니다. 클라이언트는 gateway만 호출하고, gateway가 도메인 서비스로 라우팅하며, 서비스는 자기 데이터 도메인과 이벤트 계약을 소유합니다.',
         ),
         const SizedBox(height: 20),
+        const _ArchitectureValidationSummary(),
+        const SizedBox(height: 24),
         const _ArchitectureMap(),
+        const SizedBox(height: 24),
+        const _CommunicationMatrix(),
+        const SizedBox(height: 24),
+        const _DataDomainOwnership(),
         const SizedBox(height: 24),
         const _ArchitectureFlow(),
         const SizedBox(height: 24),
@@ -1476,6 +1482,259 @@ class _ArchitectureMap extends StatelessWidget {
                 child: Icon(Icons.keyboard_arrow_down, color: Color(0xFF697772)),
               ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _ArchitectureValidationSummary extends StatelessWidget {
+  const _ArchitectureValidationSummary();
+
+  @override
+  Widget build(BuildContext context) {
+    return _ResponsiveGrid(
+      minItemWidth: 320,
+      children: const [
+        _ArchitectureContract(
+          title: '구성 검증 결과',
+          icon: Icons.verified_outlined,
+          lines: [
+            '클라이언트 → Gateway → 도메인 서비스 → 데이터/이벤트 계층 구조는 프로젝트 문서와 일치',
+            '서비스 레포는 분리되어 있지만 DB 스키마는 devpath-shared/Flyway가 중앙 관리',
+            'Sandbox는 보안상 별도 서비스와 격리 실행 환경으로 두는 구성이 타당',
+          ],
+        ),
+        _ArchitectureContract(
+          title: '보정한 표현',
+          icon: Icons.tune_outlined,
+          lines: [
+            '순수 MSA가 아니라 distributed modular monolith 성격으로 표기',
+            '현재 구현 라우트와 목표 라우트를 구분',
+            'ai-svc는 현재 Build B 기준 Ollama 게이트웨이이며, 상위 AI provider는 교체 가능한 후방 계약',
+          ],
+        ),
+        _ArchitectureContract(
+          title: '경계 원칙',
+          icon: Icons.fence_outlined,
+          lines: [
+            '클라이언트는 도메인 서비스를 직접 호출하지 않고 Gateway만 호출',
+            '서비스는 자기 도메인 테이블과 API DTO를 소유',
+            '교차 서비스 부작용은 직접 DB 수정이 아니라 Outbox/Kafka 이벤트로 전달',
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _CommunicationMatrix extends StatelessWidget {
+  const _CommunicationMatrix();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      title: '클라이언트·게이트웨이·도메인 서비스 통신',
+      icon: Icons.compare_arrows_outlined,
+      child: Column(
+        children: const [
+          _CommunicationRow(
+            from: 'Flutter Web/Mobile',
+            to: 'devpath-gateway',
+            protocol: 'HTTPS + JSON',
+            contract: 'access token은 Authorization header, refresh는 httpOnly cookie 기준. 클라이언트는 내부 서비스 주소를 모릅니다.',
+          ),
+          _CommunicationRow(
+            from: 'devpath-gateway',
+            to: 'platform-svc',
+            protocol: 'Route by path',
+            contract: '현재 구현: /oauth2/**, /login/**, /auth/**, /users/** → platform. OAuth/JWT 발급, 사용자/프로필 조회 담당.',
+          ),
+          _CommunicationRow(
+            from: 'devpath-gateway',
+            to: 'learning-svc',
+            protocol: 'Route by path',
+            contract: '현재 구현: /onboarding/assessments/** → learning. 진단, 온보딩 평가, 학습경로 생성 진입점.',
+          ),
+          _CommunicationRow(
+            from: 'learning-svc',
+            to: 'ai-svc',
+            protocol: 'Internal HTTP',
+            contract: '학습경로 생성과 임베딩 요청을 /ai/path/generate, /ai/embed 계약으로 위임. ai-svc는 Ollama/LLM 세부사항을 숨깁니다.',
+          ),
+          _CommunicationRow(
+            from: 'learning-svc / frontend',
+            to: 'sandbox-svc',
+            protocol: 'Gateway route + service API',
+            contract: '학습 과제의 runnable code block을 실행 요청으로 보내고, sandbox는 실행 로그와 테스트 결과를 저장합니다.',
+          ),
+          _CommunicationRow(
+            from: 'sandbox-svc',
+            to: 'ai-svc',
+            protocol: 'Event or worker call',
+            contract: 'SandboxRunSubmittedEvent 이후 AI Review Worker가 코드, 테스트 실패, stdout/stderr를 리뷰 입력으로 전달합니다.',
+          ),
+          _CommunicationRow(
+            from: '도메인 서비스',
+            to: 'Kafka',
+            protocol: 'Transactional Outbox',
+            contract: '비즈니스 데이터와 outbox_events를 같은 PostgreSQL 트랜잭션에 저장한 뒤 relay가 Kafka로 발행합니다.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommunicationRow extends StatelessWidget {
+  const _CommunicationRow({
+    required this.from,
+    required this.to,
+    required this.protocol,
+    required this.contract,
+  });
+
+  final String from;
+  final String to;
+  final String protocol;
+  final String contract;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8F3),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD9DED8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _FlowChip(text: from, color: const Color(0xFF2D6CDF)),
+              const Icon(Icons.arrow_forward, size: 18, color: Color(0xFF697772)),
+              _FlowChip(text: to, color: const Color(0xFF1F6F68)),
+              _FlowChip(text: protocol, color: const Color(0xFFB7791F)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(contract, style: const TextStyle(height: 1.4, color: Color(0xFF4D5C57))),
+        ],
+      ),
+    );
+  }
+}
+
+class _FlowChip extends StatelessWidget {
+  const _FlowChip({required this.text, required this.color});
+
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
+      ),
+      child: Text(text, style: TextStyle(color: color, fontWeight: FontWeight.w800)),
+    );
+  }
+}
+
+class _DataDomainOwnership extends StatelessWidget {
+  const _DataDomainOwnership();
+
+  @override
+  Widget build(BuildContext context) {
+    return _Panel(
+      title: '데이터 도메인과 소유 서비스',
+      icon: Icons.schema_outlined,
+      child: _ResponsiveGrid(
+        minItemWidth: 280,
+        children: const [
+          _DataDomainCard(
+            domain: 'Platform',
+            owner: 'platform-svc',
+            tables: 'users, user_profiles, user_oauth_identities, github_profiles',
+            communication: 'Gateway 라우트로 사용자/인증 요청 처리. 온보딩 상태는 learning 이벤트를 소비해 갱신.',
+          ),
+          _DataDomainCard(
+            domain: 'Learning',
+            owner: 'learning-svc',
+            tables: 'assessments, learning_paths, path_milestones, path_weekly_tasks, contents, content_embeddings',
+            communication: '진단/경로 API를 제공하고 ai-svc에 생성/임베딩 요청. 완료 이벤트를 Outbox로 발행.',
+          ),
+          _DataDomainCard(
+            domain: 'AI',
+            owner: 'ai-svc',
+            tables: 'ai_code_reviews, ai_mentor_sessions, ai_cost_logs',
+            communication: '현재 Build B는 무상태 Ollama Gateway. 리뷰/멘토/비용 로그는 후속 빌드에서 저장 도메인으로 확장.',
+          ),
+          _DataDomainCard(
+            domain: 'Sandbox',
+            owner: 'sandbox-svc',
+            tables: 'sandbox_sessions, sandbox_test_results, sandbox_quotas, sandbox_abuse_logs',
+            communication: '실습 코드를 격리 실행하고 결과를 저장. 리뷰 필요 시 SandboxRunSubmittedEvent를 발행.',
+          ),
+          _DataDomainCard(
+            domain: 'Community',
+            owner: 'community-svc',
+            tables: 'community_posts, answers, votes, reputation, badges, learning_context_snapshots',
+            communication: '질문/답변/평판을 소유. 학습 맥락은 이벤트 또는 worker로 learning 데이터의 스냅샷만 참조.',
+          ),
+          _DataDomainCard(
+            domain: 'Operations/Event',
+            owner: 'devpath-shared + 각 서비스',
+            tables: 'outbox_events, audit_logs, progress_events',
+            communication: '스키마는 shared가 관리하고, 이벤트 row는 생산 서비스가 같은 트랜잭션에서 기록.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DataDomainCard extends StatelessWidget {
+  const _DataDomainCard({
+    required this.domain,
+    required this.owner,
+    required this.tables,
+    required this.communication,
+  });
+
+  final String domain;
+  final String owner;
+  final String tables;
+  final String communication;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFD9DED8)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(domain, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          _ResultLine(label: '소유', value: owner),
+          _ResultLine(label: '테이블', value: tables),
+          _ResultLine(label: '통신', value: communication),
         ],
       ),
     );
