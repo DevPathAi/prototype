@@ -1464,6 +1464,11 @@ class _ArchitectureMap extends StatelessWidget {
       ('도메인 서비스', ['platform', 'learning', 'ai', 'sandbox', 'community'], const Color(0xFFB7791F)),
       ('데이터/이벤트', ['PostgreSQL', 'pgvector', 'Redis', 'Kafka', 'Ollama'], const Color(0xFF9D3A3A)),
     ];
+    const connectors = [
+      'HTTPS 요청 · JWT 전달',
+      'Path 기반 라우팅 · 인증 컨텍스트 전파',
+      '도메인 DB 접근 · Outbox/Kafka 이벤트 · AI 호출',
+    ];
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -1477,13 +1482,45 @@ class _ArchitectureMap extends StatelessWidget {
           for (var i = 0; i < rows.length; i++) ...[
             _ArchitectureRow(title: rows[i].$1, chips: rows[i].$2, color: rows[i].$3),
             if (i < rows.length - 1)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: Icon(Icons.keyboard_arrow_down, color: Color(0xFF697772)),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                child: _ArchitectureConnector(label: connectors[i]),
               ),
           ],
         ],
       ),
+    );
+  }
+}
+
+class _ArchitectureConnector extends StatelessWidget {
+  const _ArchitectureConnector({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const SizedBox(width: 120),
+        Expanded(
+          child: Row(
+            children: [
+              const Expanded(child: Divider(color: Color(0xFFD0D9D2))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Chip(
+                  label: Text(label),
+                  avatar: const Icon(Icons.arrow_downward, size: 16),
+                  side: const BorderSide(color: Color(0xFFD0D9D2)),
+                  backgroundColor: const Color(0xFFF7F8F3),
+                ),
+              ),
+              const Expanded(child: Divider(color: Color(0xFFD0D9D2))),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
