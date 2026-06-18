@@ -1,0 +1,9 @@
+{
+  "name": "DevPath AI Prototype",
+  "short_name": "DevPath AI",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f7f8f3",
+  "theme_color": "#1f6f68",
+  "description": "DevPath AI 프로젝트 소개와 데모 쇼케이스"
+}

@@ -1,6 +1,6 @@
 # CLAUDE.md — prototype
 
-> 핵심 플로우(두 Aha Moment) 검증용 웹 프로토타입 (Vite + React + TypeScript)
+> 핵심 플로우(두 Aha Moment) 검증용 공개 Flutter Web 프로토타입
 
 ## 🚫 절대 조건 — 모든 작업에 예외 없이 적용
 
@@ -22,9 +22,14 @@
 
 ## 빌드·테스트
 
-- 설치: `npm install`  / 개발: `npm run dev`  / 빌드 검증: `npm run build`  / 린트: `npm run lint`
-- 프로토타입이라도 절대 조건은 동일하게 적용된다. 검증 로직은 **실패 테스트부터** 작성한다(테스트 러너 미설정 시 Vitest 도입).
+- 설치: `flutter pub get`
+- 개발: `flutter run -d chrome`
+- 정적 분석: `flutter analyze`
+- 테스트: `flutter test`
+- 빌드 검증: `flutter build web --release --base-href /prototype/`
+- 프로토타입이라도 절대 조건은 동일하게 적용된다. 검증 로직은 **실패 테스트부터** 작성한다.
 - 검증 대상: ① GitHub 활동 + 진단 기반 개인화 학습 경로 ② Sandbox 실습 후 AI 코드 리뷰
+- 사용자에게 보이는 문구와 문서는 한국어로 작성한다. 코드 식별자, 명령어, API path, 기술명은 원문을 유지한다.
 
 ## 공통 규칙
 
