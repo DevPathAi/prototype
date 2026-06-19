@@ -36,6 +36,7 @@
 - Git: Conventional Commits — [documents/09_Git_규칙_정의서](https://github.com/DevPathAi/documents/blob/main/09_Git_규칙_정의서.md)
 - 코드 리뷰: [documents/12_코드_리뷰_규칙](https://github.com/DevPathAi/documents/blob/main/12_코드_리뷰_규칙.md)
 - 비밀값(Claude API 키·OAuth·결제 키)은 절대 커밋하지 않는다.
+- 설계 문서와 이후 작업 문서는 이 저장소의 `docs/` 폴더에 저장한다.
 
 
 ## 🚫 서브에이전트 작업 범위 강제 (Scope Lock) — 모든 작업 공통
