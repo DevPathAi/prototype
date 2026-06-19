@@ -10,33 +10,41 @@ void main(List<String> args) {
     return;
   }
 
-  final coverage = learningLoopCoverage(file.readAsStringSync());
-  if (coverage == null) {
+  final report = learningLoopCoverage(file.readAsStringSync());
+  if (report == null) {
     stderr.writeln('No lib/learning_loop records found in $lcovPath');
     exitCode = 1;
     return;
   }
 
   stdout.writeln(
-    'lib/learning_loop line coverage: ${coverage.toStringAsFixed(2)}%',
+    'lib/learning_loop line coverage: ${report.percent.toStringAsFixed(2)}%',
   );
-  if (coverage < minimum) {
+  if (report.percent < minimum) {
     stderr.writeln(
-      'Coverage ${coverage.toStringAsFixed(2)}% is below $minimum%',
+      'Coverage ${report.percent.toStringAsFixed(2)}% is below $minimum%',
     );
+    if (report.uncoveredLines.isNotEmpty) {
+      stderr.writeln('Uncovered learning_loop lines:');
+      for (final line in report.uncoveredLines) {
+        stderr.writeln('- $line');
+      }
+    }
     exitCode = 1;
   }
 }
 
-double? learningLoopCoverage(String lcov) {
+CoverageReport? learningLoopCoverage(String lcov) {
   var found = false;
   var hit = 0;
   var total = 0;
   var inLearningLoopFile = false;
+  var sourcePath = '';
+  final uncovered = <String>[];
 
   for (final line in lcov.split('\n')) {
     if (line.startsWith('SF:')) {
-      final sourcePath = line.substring(3).replaceAll('\\', '/');
+      sourcePath = line.substring(3).replaceAll('\\', '/');
       inLearningLoopFile = sourcePath.contains('lib/learning_loop/');
       if (inLearningLoopFile) {
         found = true;
@@ -51,13 +59,35 @@ double? learningLoopCoverage(String lcov) {
       continue;
     }
     total += 1;
-    if (int.parse(parts[1]) > 0) {
+    final lineNumber = parts[0];
+    final count = int.parse(parts[1]);
+    if (count > 0) {
       hit += 1;
+    } else {
+      uncovered.add('$sourcePath:$lineNumber');
     }
   }
 
   if (!found || total == 0) {
     return null;
   }
-  return hit * 100 / total;
+  return CoverageReport(
+    hit: hit,
+    total: total,
+    uncoveredLines: List.unmodifiable(uncovered),
+  );
+}
+
+class CoverageReport {
+  const CoverageReport({
+    required this.hit,
+    required this.total,
+    required this.uncoveredLines,
+  });
+
+  final int hit;
+  final int total;
+  final List<String> uncoveredLines;
+
+  double get percent => hit * 100 / total;
 }

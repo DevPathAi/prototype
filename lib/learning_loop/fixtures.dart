@@ -151,7 +151,7 @@ bool _containsSensitiveFixture(String value) {
       r'(api[_-]?key|secret|token)\s*[:=]\s*[A-Za-z0-9_-]{8,}',
       caseSensitive: false,
     ),
-    RegExp(r'\b(bearer|sk-)[A-Za-z0-9_-]{8,}', caseSensitive: false),
+    RegExp(r'\b(bearer|sk-)\s*[A-Za-z0-9_-]{8,}', caseSensitive: false),
     RegExp(r'[A-Za-z]:\\[^ ]+'),
     RegExp(r'/Users/[^ ]+|/home/[^ ]+'),
     RegExp(r'주민등록|전화번호|휴대폰|실명'),

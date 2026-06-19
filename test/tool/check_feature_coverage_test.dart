@@ -12,6 +12,9 @@ SF:lib/main.dart
 DA:1,0
 ''';
 
-    expect(learningLoopCoverage(lcov), 50);
+    final report = learningLoopCoverage(lcov);
+
+    expect(report!.percent, 50);
+    expect(report.uncoveredLines, ['lib/learning_loop/reducer.dart:2']);
   });
 }
