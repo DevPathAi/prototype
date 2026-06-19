@@ -25,8 +25,10 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test
+      - run: flutter test --coverage
+      - run: dart run tool/check_feature_coverage.dart coverage/lcov.info 100
       - run: flutter build web --release --base-href /prototype/
+      - run: dart run tool/check_web_size.dart build/web 2542046 42390694 16220
       - run: touch build/web/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
@@ -41,3 +43,8 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+      - name: Smoke deployed prototype
+        run: |
+          set -euo pipefail
+          curl --fail --location "${{ steps.deployment.outputs.page_url }}"
+          curl --fail --location "${{ steps.deployment.outputs.page_url }}main.dart.js"
