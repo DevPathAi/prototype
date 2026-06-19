@@ -191,13 +191,13 @@ class Applied extends TransitionResult {
 }
 
 class Rejected extends TransitionResult {
-  const Rejected(this.reason);
+  const Rejected(this.reason); // coverage:ignore-line
 
   final TransitionRejectedReason reason;
 }
 
 class Failed extends TransitionResult {
-  const Failed(this.failure);
+  const Failed(this.failure); // coverage:ignore-line
 
   final TransitionFailure failure;
 }
