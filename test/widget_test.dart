@@ -19,6 +19,11 @@ void main() {
     await tester.tap(find.text('데모'));
     await tester.pumpAndSettle();
 
+    expect(find.text('LCS 학습 루프를 먼저 보고 기능 탐색으로 확장합니다'), findsOneWidget);
+    await tester.ensureVisible(find.text('진단 페이지'));
+    await tester.tap(find.text('진단 페이지'));
+    await tester.pumpAndSettle();
+
     expect(find.text('진단 페이지'), findsWidgets);
     expect(find.text('진단 문항 응답'), findsOneWidget);
     await tester.scrollUntilVisible(find.text('민준'), 180);
@@ -47,6 +52,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('검색 조건'), findsOneWidget);
     expect(find.text('추천 근거'), findsOneWidget);
+  });
+
+  testWidgets('LCS guided loop를 끝까지 진행하고 멘토 요약을 확인할 수 있다', (tester) async {
+    await tester.pumpWidget(const DevPathPrototypeApp());
+
+    await tester.tap(find.text('3분 데모 시작'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1. 실패한 실습과 일반 AI 답변'), findsOneWidget);
+    await tester.ensureVisible(find.text('LCS 선택으로 이동'));
+    await tester.tap(find.text('LCS 선택으로 이동'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('2. 학습자가 승인한 LCS만 사용'), findsOneWidget);
+    expect(find.text('최근 오류 요약'), findsOneWidget);
+    await tester.ensureVisible(find.text('맥락 리뷰 생성'));
+    await tester.tap(find.text('맥락 리뷰 생성'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('3. 일반 AI와 LCS 기반 리뷰 비교'), findsOneWidget);
+    expect(find.textContaining('이번 단원의 핵심'), findsOneWidget);
+    await tester.ensureVisible(find.text('경로 보정 보기'));
+    await tester.tap(find.text('경로 보정 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('4. 다음 학습 과제 보정'), findsOneWidget);
+    expect(find.text('보정 후 과제'), findsOneWidget);
+    await tester.ensureVisible(find.text('증거와 요약 보기'));
+    await tester.tap(find.text('증거와 요약 보기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('5. 취업 준비 증거와 멘토 요약'), findsOneWidget);
+    expect(find.text('멘토에게 공유할 요약'), findsOneWidget);
+    expect(find.textContaining('DevPath 학습 루프 요약'), findsOneWidget);
   });
 
   testWidgets('모바일 폭에서도 탭 전환이 가능하다', (tester) async {

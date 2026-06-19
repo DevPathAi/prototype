@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'learning_loop/fixtures.dart';
+import 'learning_loop/models.dart';
+import 'learning_loop/view.dart';
+import 'theme/prototype_theme.dart';
+
 void main() {
   runApp(const DevPathPrototypeApp());
 }
@@ -12,15 +17,7 @@ class DevPathPrototypeApp extends StatelessWidget {
     return MaterialApp(
       title: 'DevPath AI',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1F6F68),
-          brightness: Brightness.light,
-        ),
-        scaffoldBackgroundColor: const Color(0xFFF7F8F3),
-        fontFamily: 'Roboto',
-      ),
+      theme: buildPrototypeTheme(),
       home: const PrototypeHomePage(),
     );
   }
@@ -38,6 +35,7 @@ enum PrototypeSection {
 }
 
 enum DemoPage {
+  learningLoop('학습 루프', Icons.psychology_alt_outlined),
   diagnosis('진단 페이지', Icons.fact_check_outlined),
   path('학습경로 페이지', Icons.route_outlined),
   sandbox('샌드박스 페이지', Icons.terminal_outlined),
@@ -57,6 +55,17 @@ class PrototypeHomePage extends StatefulWidget {
 
 class _PrototypeHomePageState extends State<PrototypeHomePage> {
   PrototypeSection _section = PrototypeSection.overview;
+  late final ScenarioCatalogResult _scenarioCatalog;
+  late LearningLoopState? _learningLoopState;
+
+  @override
+  void initState() {
+    super.initState();
+    _scenarioCatalog = validateScenarioCatalog();
+    _learningLoopState = _scenarioCatalog.scenario == null
+        ? null
+        : LearningLoopState.initial(_scenarioCatalog.scenario!);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,8 +74,21 @@ class _PrototypeHomePageState extends State<PrototypeHomePage> {
         final wide = constraints.maxWidth >= 980;
         return Scaffold(
           body: wide
-              ? _DesktopShell(section: _section, onChanged: _setSection)
-              : _MobileShell(section: _section),
+              ? _DesktopShell(
+                  section: _section,
+                  onChanged: _setSection,
+                  learningLoopState: _learningLoopState,
+                  onLearningLoopStateChanged: _setLearningLoopState,
+                  scenarioCatalog: _scenarioCatalog,
+                  onStartDemo: _startGuidedDemo,
+                )
+              : _MobileShell(
+                  section: _section,
+                  learningLoopState: _learningLoopState,
+                  onLearningLoopStateChanged: _setLearningLoopState,
+                  scenarioCatalog: _scenarioCatalog,
+                  onStartDemo: _startGuidedDemo,
+                ),
           bottomNavigationBar: wide
               ? null
               : NavigationBar(
@@ -89,13 +111,32 @@ class _PrototypeHomePageState extends State<PrototypeHomePage> {
   void _setSection(PrototypeSection section) {
     setState(() => _section = section);
   }
+
+  void _setLearningLoopState(LearningLoopState state) {
+    setState(() => _learningLoopState = state);
+  }
+
+  void _startGuidedDemo() {
+    setState(() => _section = PrototypeSection.demo);
+  }
 }
 
 class _DesktopShell extends StatelessWidget {
-  const _DesktopShell({required this.section, required this.onChanged});
+  const _DesktopShell({
+    required this.section,
+    required this.onChanged,
+    required this.learningLoopState,
+    required this.onLearningLoopStateChanged,
+    required this.scenarioCatalog,
+    required this.onStartDemo,
+  });
 
   final PrototypeSection section;
   final ValueChanged<PrototypeSection> onChanged;
+  final LearningLoopState? learningLoopState;
+  final ValueChanged<LearningLoopState> onLearningLoopStateChanged;
+  final ScenarioCatalogResult scenarioCatalog;
+  final VoidCallback onStartDemo;
 
   @override
   Widget build(BuildContext context) {
@@ -120,16 +161,34 @@ class _DesktopShell extends StatelessWidget {
               ),
           ],
         ),
-        Expanded(child: _SectionViewport(section: section)),
+        Expanded(
+          child: _SectionViewport(
+            section: section,
+            learningLoopState: learningLoopState,
+            onLearningLoopStateChanged: onLearningLoopStateChanged,
+            scenarioCatalog: scenarioCatalog,
+            onStartDemo: onStartDemo,
+          ),
+        ),
       ],
     );
   }
 }
 
 class _MobileShell extends StatelessWidget {
-  const _MobileShell({required this.section});
+  const _MobileShell({
+    required this.section,
+    required this.learningLoopState,
+    required this.onLearningLoopStateChanged,
+    required this.scenarioCatalog,
+    required this.onStartDemo,
+  });
 
   final PrototypeSection section;
+  final LearningLoopState? learningLoopState;
+  final ValueChanged<LearningLoopState> onLearningLoopStateChanged;
+  final ScenarioCatalogResult scenarioCatalog;
+  final VoidCallback onStartDemo;
 
   @override
   Widget build(BuildContext context) {
@@ -152,22 +211,44 @@ class _MobileShell extends StatelessWidget {
             ],
           ),
         ),
-        Expanded(child: _SectionViewport(section: section)),
+        Expanded(
+          child: _SectionViewport(
+            section: section,
+            learningLoopState: learningLoopState,
+            onLearningLoopStateChanged: onLearningLoopStateChanged,
+            scenarioCatalog: scenarioCatalog,
+            onStartDemo: onStartDemo,
+          ),
+        ),
       ],
     );
   }
 }
 
 class _SectionViewport extends StatelessWidget {
-  const _SectionViewport({required this.section});
+  const _SectionViewport({
+    required this.section,
+    required this.learningLoopState,
+    required this.onLearningLoopStateChanged,
+    required this.scenarioCatalog,
+    required this.onStartDemo,
+  });
 
   final PrototypeSection section;
+  final LearningLoopState? learningLoopState;
+  final ValueChanged<LearningLoopState> onLearningLoopStateChanged;
+  final ScenarioCatalogResult scenarioCatalog;
+  final VoidCallback onStartDemo;
 
   @override
   Widget build(BuildContext context) {
     final Widget child = switch (section) {
-      PrototypeSection.overview => const OverviewSection(),
-      PrototypeSection.demo => const DemoSection(),
+      PrototypeSection.overview => OverviewSection(onStartDemo: onStartDemo),
+      PrototypeSection.demo => DemoSection(
+        learningLoopState: learningLoopState,
+        onLearningLoopStateChanged: onLearningLoopStateChanged,
+        scenarioCatalog: scenarioCatalog,
+      ),
       PrototypeSection.architecture => const ArchitectureSection(),
       PrototypeSection.technology => const TechnologySection(),
     };
@@ -186,14 +267,16 @@ class _SectionViewport extends StatelessWidget {
 }
 
 class OverviewSection extends StatelessWidget {
-  const OverviewSection({super.key});
+  const OverviewSection({required this.onStartDemo, super.key});
+
+  final VoidCallback onStartDemo;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const _HeroBand(),
+        _HeroBand(onStartDemo: onStartDemo),
         const SizedBox(height: 24),
         _ResponsiveGrid(
           minItemWidth: 250,
@@ -249,14 +332,23 @@ class OverviewSection extends StatelessWidget {
 }
 
 class DemoSection extends StatefulWidget {
-  const DemoSection({super.key});
+  const DemoSection({
+    required this.learningLoopState,
+    required this.onLearningLoopStateChanged,
+    required this.scenarioCatalog,
+    super.key,
+  });
+
+  final LearningLoopState? learningLoopState;
+  final ValueChanged<LearningLoopState> onLearningLoopStateChanged;
+  final ScenarioCatalogResult scenarioCatalog;
 
   @override
   State<DemoSection> createState() => _DemoSectionState();
 }
 
 class _DemoSectionState extends State<DemoSection> {
-  DemoPage _page = DemoPage.diagnosis;
+  DemoPage _page = DemoPage.learningLoop;
   DemoProfile _selected = demoProfiles.first;
   String _goal = '백엔드 취업';
   double _weeklyHours = 8;
@@ -273,9 +365,9 @@ class _DemoSectionState extends State<DemoSection> {
       children: [
         const _SectionHeader(
           eyebrow: '데모',
-          title: '기능별 독립 페이지로 체험하는 DevPath AI 서비스 화면',
+          title: 'LCS 학습 루프를 먼저 보고 기능 탐색으로 확장합니다',
           body:
-              '각 데모는 실제 서비스 화면에 가까운 페이지 단위로 구성했습니다. 진단, 학습경로 생성, 샌드박스 코드리뷰, AI 검색을 각각 독립된 시뮬레이터로 조작할 수 있습니다.',
+              '학습 루프는 실패 원인, 승인된 맥락, 리뷰 변화, 다음 과제 보정, 멘토 요약을 하나의 흐름으로 보여줍니다. 기존 진단, 경로, 샌드박스, 검색 시뮬레이터는 기능 탐색에서 계속 확인할 수 있습니다.',
         ),
         const SizedBox(height: 18),
         _DemoPageNavigation(
@@ -288,6 +380,15 @@ class _DemoSectionState extends State<DemoSection> {
           child: KeyedSubtree(
             key: ValueKey(_page),
             child: switch (_page) {
+              DemoPage.learningLoop =>
+                widget.learningLoopState == null
+                    ? ScenarioUnavailablePanel(
+                        error: widget.scenarioCatalog.error ?? '알 수 없는 오류',
+                      )
+                    : GuidedLearningLoop(
+                        state: widget.learningLoopState!,
+                        onStateChanged: widget.onLearningLoopStateChanged,
+                      ),
               DemoPage.diagnosis => _ServiceDemoPage(
                 title: '진단 페이지',
                 subtitle: '온보딩 답변과 역량 점수를 바탕으로 현재 출발점을 판정합니다.',
@@ -343,7 +444,7 @@ class _DemoSectionState extends State<DemoSection> {
                 title: 'AI 검색 페이지',
                 subtitle: '키워드 검색과 pgvector 유사도 후보를 섞어 추천 품질 변화를 비교합니다.',
                 icon: Icons.travel_explore_outlined,
-                  status: _includeVector ? 'Hybrid 모드' : 'Keyword 모드',
+                status: _includeVector ? 'Hybrid 모드' : 'Keyword 모드',
                 child: _AiSearchSimulator(
                   query: _searchQuery,
                   includeVector: _includeVector,
@@ -450,7 +551,9 @@ class TechnologySection extends StatelessWidget {
 }
 
 class _HeroBand extends StatelessWidget {
-  const _HeroBand();
+  const _HeroBand({required this.onStartDemo});
+
+  final VoidCallback onStartDemo;
 
   @override
   Widget build(BuildContext context) {
@@ -469,10 +572,10 @@ class _HeroBand extends StatelessWidget {
         children: [
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'DevPath AI',
                   style: TextStyle(
                     fontSize: 42,
@@ -480,14 +583,20 @@ class _HeroBand extends StatelessWidget {
                     height: 1.1,
                   ),
                 ),
-                SizedBox(height: 12),
-                Text(
-                  '진단부터 학습경로, 샌드박스 실습, AI 코드리뷰까지 연결하는 백엔드 개발자 성장 플랫폼입니다.',
+                const SizedBox(height: 12),
+                const Text(
+                  '실습 실패를 출발점으로, 학습자가 승인한 LCS만 사용해 AI 리뷰와 다음 학습 과제를 바꾸는 백엔드 성장 플랫폼입니다.',
                   style: TextStyle(
                     fontSize: 18,
                     height: 1.55,
                     color: Color(0xFF35443F),
                   ),
+                ),
+                const SizedBox(height: 18),
+                FilledButton.icon(
+                  onPressed: onStartDemo,
+                  icon: const Icon(Icons.play_arrow_outlined),
+                  label: const Text('3분 데모 시작'),
                 ),
               ],
             ),
@@ -505,10 +614,10 @@ class _FlowPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const items = [
-      ('진단', Icons.fact_check_outlined, Color(0xFF1F6F68)),
-      ('경로', Icons.route_outlined, Color(0xFF2D6CDF)),
-      ('실습', Icons.terminal_outlined, Color(0xFFB7791F)),
-      ('리뷰', Icons.rate_review_outlined, Color(0xFF9D3A3A)),
+      ('실패', Icons.error_outline, Color(0xFF9D3A3A)),
+      ('LCS', Icons.verified_user_outlined, Color(0xFF1F6F68)),
+      ('리뷰', Icons.rate_review_outlined, Color(0xFF2D6CDF)),
+      ('보정', Icons.route_outlined, Color(0xFFB7791F)),
     ];
     return Wrap(
       spacing: 10,
