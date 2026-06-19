@@ -170,4 +170,12 @@ void main() {
       isNot(contains(ContextFieldId.recentErrors)),
     );
   });
+
+  test('transition result value objects expose their payloads', () {
+    const rejected = Rejected(TransitionRejectedReason.duplicateAction);
+    const failed = Failed(TransitionFailure.invalidLoopState);
+
+    expect(rejected.reason, TransitionRejectedReason.duplicateAction);
+    expect(failed.failure, TransitionFailure.invalidLoopState);
+  });
 }
